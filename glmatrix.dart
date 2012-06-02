@@ -26,6 +26,7 @@
 #source("Matrix.dart");
 #source("Matrix3.dart");
 #source("Quaternion.dart");
+#source("Vector2.dart");
 #source("Vector3.dart");
 #source("Vector4.dart");
 

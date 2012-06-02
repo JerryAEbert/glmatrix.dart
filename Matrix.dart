@@ -1,113 +1,140 @@
-/*
-* mat4
-*/
-  
 class Matrix {
-
-  Float32Array dest;
   
-  
-  
-  void set m11(num value) {dest[0] = value;}
-  num get m11() => dest[0];
-  void set m12(num value) {dest[1] = value;}
-  num get m12() => dest[1];
-  void set m13(num value) {dest[2] = value;}
-  num get m13() => dest[2];
-  void set m14(num value) {dest[3] = value;}
-  num get m14() => dest[3];
-  
-  void set m21(num value) {dest[4] = value;}
-  num get m21() => dest[4];
-  void set m22(num value) {dest[5] = value;}
-  num get m22() => dest[5];
-  void set m23(num value) {dest[6] = value;}
-  num get m23() => dest[6];
-  void set m24(num value) {dest[7] = value;}
-  num get m24() => dest[7];
-  
-  void set m31(num value) {dest[8] = value;}
-  num get m31() => dest[8];
-  void set m32(num value) {dest[9] = value;}
-  num get m32() => dest[9];
-  void set m33(num value) {dest[10] = value;}
-  num get m33() => dest[10];
-  void set m34(num value) {dest[11] = value;}
-  num get m34() => dest[11];
-  
-  void set m41(num value) {dest[12] = value;}
-  num get m41() => dest[12];
-  void set m42(num value) {dest[13] = value;}
-  num get m42() => dest[13];
-  void set m43(num value) {dest[14] = value;}
-  num get m43() => dest[14];
-  void set m44(num value) {dest[15] = value;}
-  num get m44() => dest[15];
-  
-  
-  Matrix.zero() {
+  Matrix._internal() {
     dest = new Float32Array(16);
+  }  
+  
+  static List<Matrix> _recycled;
+  
+  void recycle() {
+    if(_recycled == null) _recycled = new List<Matrix>();
+    _recycled.add(this);
+  }
+  
+  static Matrix _newMatrix() {
+    Matrix mat;
+    if(_recycled == null) _recycled = new List<Matrix>();
+    if(_recycled.length > 0) {
+      mat = _recycled[0];
+      _recycled.removeRange(0, 1);
+      return mat;
+    }
+    return new Matrix._internal();
+  }
+  
+  //Float32Array dest;
+  Float32Array dest;
+
+  
+  void set m11(double value) {dest[0] = value;}
+  double get m11() => dest[0];
+  void set m12(double value) {dest[1] = value;}
+  double get m12() => dest[1];
+  void set m13(double value) {dest[2] = value;}
+  double get m13() => dest[2];
+  void set m14(double value) {dest[3] = value;}
+  double get m14() => dest[3];
+  
+  void set m21(double value) {dest[4] = value;}
+  double get m21() => dest[4];
+  void set m22(double value) {dest[5] = value;}
+  double get m22() => dest[5];
+  void set m23(double value) {dest[6] = value;}
+  double get m23() => dest[6];
+  void set m24(double value) {dest[7] = value;}
+  double get m24() => dest[7];
+  
+  void set m31(double value) {dest[8] = value;}
+  double get m31() => dest[8];
+  void set m32(double value) {dest[9] = value;}
+  double get m32() => dest[9];
+  void set m33(double value) {dest[10] = value;}
+  double get m33() => dest[10];
+  void set m34(double value) {dest[11] = value;}
+  double get m34() => dest[11];
+  
+  void set m41(double value) {dest[12] = value;}
+  double get m41() => dest[12];
+  void set m42(double value) {dest[13] = value;}
+  double get m42() => dest[13];
+  void set m43(double value) {dest[14] = value;}
+  double get m43() => dest[14];
+  void set m44(double value) {dest[15] = value;}
+  double get m44() => dest[15];
+  
+  
+  factory Matrix.zero() {
+    Matrix mat = _newMatrix();
+    for(int i=0; mat.dest.length > i; i++)
+      mat.dest[i] = 0.0;
+    return mat;
     
   }
-  Matrix.identity() {
-    dest = new Float32Array.fromList([1,0,0,0,
-                                      0,1,0,0,
-                                      0,0,1,0,
-                                      0,0,0,1]);
+  factory Matrix.identity() {
+    Matrix mat = _newMatrix();
+    mat.dest[0] = 1.0;
+    mat.dest[1] = 0.0;
+    mat.dest[2] = 0.0;
+    mat.dest[3] = 0.0;
+    
+    mat.dest[4] = 0.0;
+    mat.dest[5] = 1.0;
+    mat.dest[6] = 0.0;
+    mat.dest[7] = 0.0;
+    
+    mat.dest[8] = 0.0;
+    mat.dest[9] = 0.0;
+    mat.dest[10] = 1.0;
+    mat.dest[11] = 0.0;
+    
+    mat.dest[12] = 0.0;
+    mat.dest[13] = 0.0;
+    mat.dest[14] = 0.0;
+    mat.dest[15] = 1.0;
+    return mat;
   }
-  Matrix.fromList(List<num> list) {
-    if(list == null) {
-      dest = new Float32Array(16);
-      return;
+  factory Matrix.fromList(List<double> list) {
+    Matrix mat = _newMatrix();
+    for(int i=0; list.length > i; i++) {
+      mat.dest[i] = list[i] == null ? 0.0 : list[i].toDouble();
     }
-    if(list.length != 16) {
-      dest = new Float32Array(16);
-      return;
+    return mat;
+  }
+  factory Matrix.fromMatrix(Matrix mat) {
+    Matrix result = _newMatrix();
+    for(int i=0; mat.dest.length > i; i++) {
+      result.dest[i] = mat.dest[i];
     }
-    dest = new Float32Array.fromList(list);
+    return result;
   }
   
-  Matrix(num M11, num M12, num M13, num M14,
-         num M21, num M22, num M23, num M24,
-         num M31, num M32, num M33, num M34,
-         num M41, num M42, num M43, num M44) {
-    dest = new Float32Array.fromList([M11,M12,M13,M14,
-                                      M21,M22,M23,M24,
-                                      M31,M32,M33,M34,
-                                      M41,M42,M43,M44]);
+  
+  factory Matrix(double M11, double M12, double M13, double M14,
+                 double M21, double M22, double M23, double M24,
+                 double M31, double M32, double M33, double M34,
+                 double M41, double M42, double M43, double M44) {
+    Matrix mat = _newMatrix();
+    mat.dest[0] = M11;
+    mat.dest[1] = M12;
+    mat.dest[2] = M13;
+    mat.dest[3] = M14;
+    
+    mat.dest[4] = M21;
+    mat.dest[5] = M22;
+    mat.dest[6] = M23;
+    mat.dest[7] = M24;
+    
+    mat.dest[8] = M31;
+    mat.dest[9] = M32;
+    mat.dest[10] = M33;
+    mat.dest[11] = M34;
+    
+    mat.dest[12] = M41;
+    mat.dest[13] = M42;
+    mat.dest[14] = M43;
+    mat.dest[15] = M44;
+    return mat;
   }
-  /**
-   * Creates a new instance of a mat4 using the default array type
-   * Any javascript array-like object containing at least 16 numeric elements can serve as a mat4
-   *
-   * @param {mat4} [mat] mat4 containing values to initialize with
-   *
-   * @returns {mat4} New mat4
-   */
-  /*static Matrix create(mat) {
-      var result = new Matrix;
-  
-      if (mat) {
-          result.dest[0] = mat.dest[0];
-          result.dest[1] = mat.dest[1];
-          result.dest[2] = mat.dest[2];
-          result.dest[3] = mat.dest[3];
-          result.dest[4] = mat.dest[4];
-          result.dest[5] = mat.dest[5];
-          result.dest[6] = mat.dest[6];
-          result.dest[7] = mat.dest[7];
-          result.dest[8] = mat.dest[8];
-          result.dest[9] = mat.dest[9];
-          result.dest[10] = mat.dest[10];
-          result.dest[11] = mat.dest[11];
-          result.dest[12] = mat.dest[12];
-          result.dest[13] = mat.dest[13];
-          result.dest[14] = mat.dest[14];
-          result.dest[15] = mat.dest[15];
-      }
-  
-      return result;
-  }*/
   
   /**
    * Copies the values of one mat4 to another
@@ -118,24 +145,10 @@ class Matrix {
    * Returns result
    */
   static Matrix Clone(Matrix mat, [Matrix result]) {
-    if(result == null) return new Matrix.fromList(mat.dest);
-      result.dest[0] = mat.dest[0];
-      result.dest[1] = mat.dest[1];
-      result.dest[2] = mat.dest[2];
-      result.dest[3] = mat.dest[3];
-      result.dest[4] = mat.dest[4];
-      result.dest[5] = mat.dest[5];
-      result.dest[6] = mat.dest[6];
-      result.dest[7] = mat.dest[7];
-      result.dest[8] = mat.dest[8];
-      result.dest[9] = mat.dest[9];
-      result.dest[10] = mat.dest[10];
-      result.dest[11] = mat.dest[11];
-      result.dest[12] = mat.dest[12];
-      result.dest[13] = mat.dest[13];
-      result.dest[14] = mat.dest[14];
-      result.dest[15] = mat.dest[15];
-      return result;
+    if(result == null) return new Matrix.fromMatrix(mat);
+    for(int i=0; mat.dest.length > i; i++)
+      result.dest[i] = mat.dest[i];
+    return result;
   }
   Matrix clone([Matrix result]) => Matrix.Clone(this,result);
   
@@ -147,24 +160,28 @@ class Matrix {
    * Returns result
    */
   static Matrix Identity([Matrix result]) {
-      if(result == null) return new Matrix.identity();
-      result.dest[0] = 1;
-      result.dest[1] = 0;
-      result.dest[2] = 0;
-      result.dest[3] = 0;
-      result.dest[4] = 0;
-      result.dest[5] = 1;
-      result.dest[6] = 0;
-      result.dest[7] = 0;
-      result.dest[8] = 0;
-      result.dest[9] = 0;
-      result.dest[10] = 1;
-      result.dest[11] = 0;
-      result.dest[12] = 0;
-      result.dest[13] = 0;
-      result.dest[14] = 0;
-      result.dest[15] = 1;
-      return result;
+    if(result == null) return new Matrix.identity();
+    result.dest[0] = 1.0;
+    result.dest[1] = 0.0;
+    result.dest[2] = 0.0;
+    result.dest[3] = 0.0;
+    
+    result.dest[4] = 0.0;
+    result.dest[5] = 1.0;
+    result.dest[6] = 0.0;
+    result.dest[7] = 0.0;
+    
+    result.dest[8] = 0.0;
+    result.dest[9] = 0.0;
+    result.dest[10] = 1.0;
+    result.dest[11] = 0.0;
+    
+    result.dest[12] = 0.0;
+    result.dest[13] = 0.0;
+    result.dest[14] = 0.0;
+    result.dest[15] = 1.0;
+    
+    return result;
   }
   
   Matrix indentify() => Matrix.Identity(this);
@@ -227,7 +244,7 @@ class Matrix {
    *
    * @returns {number} determinant of mat
    */
-  num get determinant() {
+  double get determinant() {
       // Cache the matrix values (makes for huge speed increases!)
       var a00 = dest[0], a01 = dest[1], a02 = dest[2], a03 = dest[3],
           a10 = dest[4], a11 = dest[5], a12 = dest[6], a13 = dest[7],
@@ -323,10 +340,10 @@ class Matrix {
       result.dest[9] = mat.dest[9];
       result.dest[10] = mat.dest[10];
       result.dest[11] = mat.dest[11];
-      result.dest[12] = 0;
-      result.dest[13] = 0;
-      result.dest[14] = 0;
-      result.dest[15] = 1;
+      result.dest[12] = 0.0;
+      result.dest[13] = 0.0;
+      result.dest[14] = 0.0;
+      result.dest[15] = 1.0;
   
       return result;
   }
@@ -340,7 +357,7 @@ class Matrix {
    * @returns {mat3} dest is specified, a new mat3 otherwise
    */
   static Matrix3 ToMat3(Matrix mat, [Matrix3 result]) {
-      if(result == null) { result = new Matrix3(); }
+      if(result == null) { result = new Matrix3.zero(); }
   
       result.dest[0] = mat.dest[0];
       result.dest[1] = mat.dest[1];
@@ -381,7 +398,7 @@ class Matrix {
       if (!d) { return null; }
       id = 1 / d;
   
-      if(result == null) { result = new Matrix3(); }
+      if(result == null) { result = new Matrix3.zero(); }
   
       result.dest[0] = b01 * id;
       result.dest[1] = (-a22 * a01 + a02 * a21) * id;
@@ -582,7 +599,7 @@ class Matrix {
    *
    * Returns result if specified, mat otherwise
    */
-  static Matrix Rotate(Matrix mat, num angle, Vector3 axis, [Matrix result]) {
+  static Matrix Rotate(Matrix mat, double angle, Vector3 axis, [Matrix result]) {
       var x = axis.dest[0], y = axis.dest[1], z = axis.dest[2],
           len = Math.sqrt(x * x + y * y + z * z),
           s, c, t,
@@ -650,7 +667,7 @@ class Matrix {
    *
    * Returns result if specified, mat otherwise
    */
-  static Matrix RotateX(Matrix mat, num angle, [Matrix result]) {
+  static Matrix RotateX(Matrix mat, double angle, [Matrix result]) {
       var s = Math.sin(angle),
           c = Math.cos(angle),
           a10 = mat.dest[4],
@@ -689,7 +706,7 @@ class Matrix {
       return result;
   }
   
-  Matrix rotateX(num angle) => Matrix.RotateX(this,angle,this);
+  Matrix rotateX(double angle) => Matrix.RotateX(this,angle,this);
   
   /**
    * Rotates a matrix by the given angle around the Y axis
@@ -700,7 +717,7 @@ class Matrix {
    *
    * Returns result if specified, mat otherwise
    */
-  static Matrix RotateY(Matrix mat, num angle, [Matrix result]) {
+  static Matrix RotateY(Matrix mat, double angle, [Matrix result]) {
       var s = Math.sin(angle),
           c = Math.cos(angle),
           a00 = mat.dest[0],
@@ -739,7 +756,7 @@ class Matrix {
       return result;
   }
   
-  Matrix rotateY(num angle) => Matrix.RotateY(this,angle,this);
+  Matrix rotateY(double angle) => Matrix.RotateY(this,angle,this);
   
   /**
    * Rotates a matrix by the given angle around the Z axis
@@ -750,7 +767,7 @@ class Matrix {
    *
    * Returns result if specified, mat otherwise
    */
-  static Matrix RotateZ(Matrix mat, num angle, [Matrix result]) {
+  static Matrix RotateZ(Matrix mat, double angle, [Matrix result]) {
       var s = Math.sin(angle),
           c = Math.cos(angle),
           a00 = mat.dest[0],
@@ -790,7 +807,7 @@ class Matrix {
       return result;
   }
   
-  Matrix rotateZ(num angle) => Matrix.RotateZ(this,angle,this);
+  Matrix rotateZ(double angle) => Matrix.RotateZ(this,angle,this);
   
   /**
    * Generates a frustum matrix with the given bounds
@@ -805,27 +822,27 @@ class Matrix {
    *
    * Returns result if specified, a new mat4 otherwise
    */
-  static Matrix Frustum(num left, num right, num bottom, num top, num near, num far, [Matrix result]) {
+  static Matrix Frustum(double left, double right, double bottom, double top, double near, double far, [Matrix result]) {
       if(result == null) result = new Matrix.zero();
       var rl = (right - left),
           tb = (top - bottom),
           fn = (far - near);
       result.dest[0] = (near * 2) / rl;
-      result.dest[1] = 0;
-      result.dest[2] = 0;
-      result.dest[3] = 0;
-      result.dest[4] = 0;
+      result.dest[1] = 0.0;
+      result.dest[2] = 0.0;
+      result.dest[3] = 0.0;
+      result.dest[4] = 0.0;
       result.dest[5] = (near * 2) / tb;
-      result.dest[6] = 0;
-      result.dest[7] = 0;
+      result.dest[6] = 0.0;
+      result.dest[7] = 0.0;
       result.dest[8] = (right + left) / rl;
       result.dest[9] = (top + bottom) / tb;
       result.dest[10] = -(far + near) / fn;
-      result.dest[11] = -1;
-      result.dest[12] = 0;
-      result.dest[13] = 0;
+      result.dest[11] = -1.0;
+      result.dest[12] = 0.0;
+      result.dest[13] = 0.0;
       result.dest[14] = -(far * near * 2) / fn;
-      result.dest[15] = 0;
+      result.dest[15] = 0.0;
       return result;
   }
   
@@ -840,7 +857,7 @@ class Matrix {
    *
    * Returns result if specified, a new mat4 otherwise
    */
-  static Matrix Perspective(num fovy, num aspect, num near, num far, [Matrix result]) {
+  static Matrix Perspective(double fovy, double aspect, double near, double far, [Matrix result]) {
       var top = near * Math.tan(fovy * Math.PI / 360.0),
           right = top * aspect;
       return Matrix.Frustum(-right, right, -top, top, near, far, result);
@@ -859,27 +876,27 @@ class Matrix {
    *
    * Returns result if specified, a new mat4 otherwise
    */
-  static Matrix Ortho(num left, num right, num bottom, num top, num near, num far, [Matrix result]) {
+  static Matrix Ortho(double left, double right, double bottom, double top, double near, double far, [Matrix result]) {
       if(result == null) result = new Matrix.zero();
       var rl = (right - left),
           tb = (top - bottom),
           fn = (far - near);
       result.dest[0] = 2 / rl;
-      result.dest[1] = 0;
-      result.dest[2] = 0;
-      result.dest[3] = 0;
-      result.dest[4] = 0;
+      result.dest[1] = 0.0;
+      result.dest[2] = 0.0;
+      result.dest[3] = 0.0;
+      result.dest[4] = 0.0;
       result.dest[5] = 2 / tb;
-      result.dest[6] = 0;
-      result.dest[7] = 0;
-      result.dest[8] = 0;
-      result.dest[9] = 0;
+      result.dest[6] = 0.0;
+      result.dest[7] = 0.0;
+      result.dest[8] = 0.0;
+      result.dest[9] = 0.0;
       result.dest[10] = -2 / fn;
-      result.dest[11] = 0;
+      result.dest[11] = 0.0;
       result.dest[12] = -(left + right) / rl;
       result.dest[13] = -(top + bottom) / tb;
       result.dest[14] = -(far + near) / fn;
-      result.dest[15] = 1;
+      result.dest[15] = 1.0;
       return result;
   }
   
@@ -928,9 +945,9 @@ class Matrix {
       x2 = upx * z1 - upy * z0;
       len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
       if (!len) {
-          x0 = 0;
-          x1 = 0;
-          x2 = 0;
+          x0 = 0.0;
+          x1 = 0.0;
+          x2 = 0.0;
       } else {
           len = 1 / len;
           x0 *= len;
@@ -945,9 +962,9 @@ class Matrix {
   
       len = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
       if (!len) {
-          y0 = 0;
-          y1 = 0;
-          y2 = 0;
+          y0 = 0.0;
+          y1 = 0.0;
+          y2 = 0.0;
       } else {
           len = 1 / len;
           y0 *= len;
@@ -958,19 +975,19 @@ class Matrix {
       result.dest[0] = x0;
       result.dest[1] = y0;
       result.dest[2] = z0;
-      result.dest[3] = 0;
+      result.dest[3] = 0.0;
       result.dest[4] = x1;
       result.dest[5] = y1;
       result.dest[6] = z1;
-      result.dest[7] = 0;
+      result.dest[7] = 0.0;
       result.dest[8] = x2;
       result.dest[9] = y2;
       result.dest[10] = z2;
-      result.dest[11] = 0;
+      result.dest[11] = 0.0;
       result.dest[12] = -(x0 * eyex + x1 * eyey + x2 * eyez);
       result.dest[13] = -(y0 * eyex + y1 * eyey + y2 * eyez);
       result.dest[14] = -(z0 * eyex + z1 * eyey + z2 * eyez);
-      result.dest[15] = 1;
+      result.dest[15] = 1.0;
   
       return result;
   }
@@ -1015,19 +1032,19 @@ class Matrix {
       result.dest[0] = 1 - (yy + zz);
       result.dest[1] = xy + wz;
       result.dest[2] = xz - wy;
-      result.dest[3] = 0;
+      result.dest[3] = 0.0;
       result.dest[4] = xy - wz;
       result.dest[5] = 1 - (xx + zz);
       result.dest[6] = yz + wx;
-      result.dest[7] = 0;
+      result.dest[7] = 0.0;
       result.dest[8] = xz + wy;
       result.dest[9] = yz - wx;
       result.dest[10] = 1 - (xx + yy);
-      result.dest[11] = 0;
+      result.dest[11] = 0.0;
       result.dest[12] = vec.dest[0];
       result.dest[13] = vec.dest[1];
       result.dest[14] = vec.dest[2];
-      result.dest[15] = 1;
+      result.dest[15] = 1.0;
       
       return result;
   }
@@ -1045,9 +1062,9 @@ class Matrix {
    * @returns {string} String representation of mat
    */
   String toString() {
-      return '[' + dest[0] + ', ' + dest[1] + ', ' + dest[2] + ', ' + dest[3] +
-          ', ' + dest[4] + ', ' + dest[5] + ', ' + dest[6] + ', ' + dest[7] +
-          ', ' + dest[8] + ', ' + dest[9] + ', ' + dest[10] + ', ' + dest[11] +
-          ', ' + dest[12] + ', ' + dest[13] + ', ' + dest[14] + ', ' + dest[15] + ']';
+      return '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ', ' + dest[3].toString() +
+          ', ' + dest[4].toString() + ', ' + dest[5].toString() + ', ' + dest[6].toString() + ', ' + dest[7].toString() +
+          ', ' + dest[8].toString() + ', ' + dest[9].toString() + ', ' + dest[10].toString() + ', ' + dest[11].toString() +
+          ', ' + dest[12].toString() + ', ' + dest[13].toString() + ', ' + dest[14].toString() + ', ' + dest[15].toString() + ']';
   }  
 }

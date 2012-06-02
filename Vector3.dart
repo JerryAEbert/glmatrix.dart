@@ -1,83 +1,84 @@
 class Vector3 {
+  //Float32Array dest;
   Float32Array dest;
-
-  Vector3.fromValues(num x, num y, num z) {
-    dest = new Float32Array.fromList([x,y,z]);
-  }
   
-  Vector3.zero() {
+  
+  // internal recycleSystem ... Green Vectors!
+  
+  Vector3._internal() {
     dest = new Float32Array(3);
   }
   
-  Vector3.fromSingleValues(num value) {
-    dest = new Float32Array.fromList([value,value,value]);
+  static List<Vector3> _recycled;
+  
+  void recycle() {
+    if(_recycled == null) _recycled = new List<Vector3>();
+    _recycled.add(this);
   }
   
-  Vector3.fromList(List<num> list) {
-    
-    if(list == null) {
-      throw "List is Null";
-      dest = new Float32Array(3);
-      return;
+  static Vector3 _createVector() {
+    Vector3 vec;
+    if(_recycled == null) _recycled = new List<Vector3>();
+    if(_recycled.length > 0) {
+      vec = _recycled[0];
+      _recycled.removeRange(0, 1);
+      return vec;
     }
-    if(list.length == 3) {
-      dest = new Float32Array.fromList(list);
-      return;
-    }
-    
-    if(list.length > 3) {
-      dest = new Float32Array.fromList(list.getRange(0, 3));
-      return;
-    }
-    if(list.length == 2) {
-      dest = new Float32Array.fromList([list[0],list[1],0]);
-      return;
-    }
-    if(list.length == 1) {
-      dest = new Float32Array.fromList([list[0],0,0]);
-      return;
-    }
-    dest = new Float32Array(3);
-  }
-  
-  Vector3(num x, num y, num z) {
-    dest = new Float32Array.fromList([x,y,z]);
+    return new Vector3._internal();
   }
   
   
-  int get X() => dest[0];
-  void set X(num val) { dest[0] = val;}
-  int get Y() => dest[1];
-  void set Y(num val) { dest[1] = val;}
-  int get Z() => dest[2];
-  void set Z(num val) { dest[2] = val;}
+  // Constructors
+  
+  factory Vector3.fromValues(double x, double y, double z) {
+    Vector3 vec = _createVector();
+    vec.dest[0] = x;
+    vec.dest[1] = y;
+    vec.dest[2] = z;
+    return vec;
+  }
+  
+  factory Vector3.zero() {
+    return _createVector();
+  }
+  
+  factory Vector3.fromSingleValues(double value) {
+    Vector3 vec = _createVector();
+    vec.dest[0] = value;
+    vec.dest[1] = value;
+    vec.dest[2] = value;
+    return vec;
+  }
+  
+  factory Vector3.fromList(List<double> list) {
+    Vector3 vec = _createVector();
+    vec.dest[0] = list[0] == null ? 0.0 : list[0].toDouble();
+    vec.dest[1] = list[1] == null ? 0.0 : list[1].toDouble();
+    vec.dest[2] = list[2] == null ? 0.0 : list[2].toDouble();
+    return vec;
+  }
+  
+  factory Vector3(double x, double y, double z) {
+    Vector3 vec = _createVector();
+    vec.dest[0] = x.toDouble();
+    vec.dest[1] = y.toDouble();
+    vec.dest[2] = z.toDouble();
+    return vec;
+  }
   
   
-  /*
-   * vec3
-   */
-   
-  /**
-   * Creates a new instance of a vec3 using the default array type
-   * Any javascript array-like objects containing at least 3 numeric elements can serve as a vec3
-   *
-   * @param {vec3} [vec] vec3 containing values to initialize with
-   *
-   * @returns {vec3} New vec3
-   */
-  /*static Vector3 create(vec) {
-      var dest =new Vector3.zero();
-
-      if (vec) {
-          result.dest[0] = vec.dest[0];
-          result.dest[1] = vec.dest[1];
-          result.dest[2] = vec.dest[2];
-      } else {
-          result.dest[0] = result.dest[1] = result.dest[2] = 0;
-      }
-
-      return result;
-  }*/
+  double get X() => dest[0];
+  void set X(double val) { dest[0] = val;}
+  double get Y() => dest[1];
+  void set Y(double val) { dest[1] = val;}
+  double get Z() => dest[2];
+  void set Z(double val) { dest[2] = val;}
+  
+  void setXYZ(double x, double y, double z) {
+    dest[0] = x;
+    dest[1] = y;
+    dest[2] = z;
+  }
 
   
   
@@ -90,11 +91,11 @@ class Vector3 {
    * @returns {vec3} dest
    */
   static Vector3 Clone(Vector3 vec, [Vector3 result]) {
-      result.dest[0] = vec.dest[0];
-      result.dest[1] = vec.dest[1];
-      result.dest[2] = vec.dest[2];
-
-      return result;
+    if(result == null) result = new Vector3.zero();
+    result.dest[0] = vec.dest[0];
+    result.dest[1] = vec.dest[1];
+    result.dest[2] = vec.dest[2];
+    return result;
   }
   
   Vector3 clone([Vector3 result]) {
@@ -111,19 +112,14 @@ class Vector3 {
    * @returns {vec3} dest if specified, vec otherwise
    */
   static Vector3 Add(Vector3 vec, Vector3 vec2, [Vector3 result]) {
-      if (result == null || vec === result) {
-          vec.dest[0] += vec2.dest[0];
-          vec.dest[1] += vec2.dest[1];
-          vec.dest[2] += vec2.dest[2];
-          return vec;
-      }
-
-      result.dest[0] = vec.dest[0] + vec2.dest[0];
-      result.dest[1] = vec.dest[1] + vec2.dest[1];
-      result.dest[2] = vec.dest[2] + vec2.dest[2];
-      return result;
+    if(result == null) result = new Vector3.zero();
+  
+    result.dest[0] = vec.dest[0] + vec2.dest[0];
+    result.dest[1] = vec.dest[1] + vec2.dest[1];
+    result.dest[2] = vec.dest[2] + vec2.dest[2];
+    return result;
   }
-  Vector3 add(Vector3 vec) => Vector3.Add(this, vec, this);
+  void add(Vector3 vec) { Vector3.Add(this, vec, this); }
   /**
    * Performs a vector subtraction
    *
@@ -134,17 +130,12 @@ class Vector3 {
    * @returns {vec3} dest if specified, vec otherwise
    */
   static Vector3 Subtract(Vector3 vec, Vector3 vec2, [Vector3 result]) {
-      if (result == null || vec === result) {
-          vec.dest[0] -= vec2.dest[0];
-          vec.dest[1] -= vec2.dest[1];
-          vec.dest[2] -= vec2.dest[2];
-          return vec;
-      }
-
-      result.dest[0] = vec.dest[0] - vec2.dest[0];
-      result.dest[1] = vec.dest[1] - vec2.dest[1];
-      result.dest[2] = vec.dest[2] - vec2.dest[2];
-      return result;
+    if(result == null) result = new Vector3.zero();
+  
+    result.dest[0] = vec.dest[0] - vec2.dest[0];
+    result.dest[1] = vec.dest[1] - vec2.dest[1];
+    result.dest[2] = vec.dest[2] - vec2.dest[2];
+    return result;
   }
   Vector3 subtract(Vector3 vec) => Vector3.Subtract(this, vec, this);
 
@@ -159,17 +150,11 @@ class Vector3 {
    */
   static Vector3 Multiply(Vector3 vec, Vector3 vec2, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
-      if (result == null || vec === result) {
-          vec.dest[0] *= vec2.dest[0];
-          vec.dest[1] *= vec2.dest[1];
-          vec.dest[2] *= vec2.dest[2];
-          return vec;
-      }
 
-      result.dest[0] = vec.dest[0] * vec2.dest[0];
-      result.dest[1] = vec.dest[1] * vec2.dest[1];
-      result.dest[2] = vec.dest[2] * vec2.dest[2];
-      return result;
+    result.dest[0] = vec.dest[0] * vec2.dest[0];
+    result.dest[1] = vec.dest[1] * vec2.dest[1];
+    result.dest[2] = vec.dest[2] * vec2.dest[2];
+    return result;
   }
   Vector3 multiply(Vector3 vec) => Multiply(this,vec,this);
 
@@ -232,7 +217,7 @@ class Vector3 {
    *
    * @returns {vec3} dest if specified, vec otherwise
    */
-  static Vector3 Scale(Vector3 vec, num val, [Vector3 result]) {
+  static Vector3 Scale(Vector3 vec, double val, [Vector3 result]) {
       if (result == null || vec === result) {
           vec.dest[0] *= val;
           vec.dest[1] *= val;
@@ -262,9 +247,9 @@ class Vector3 {
           len = Math.sqrt(x * x + y * y + z * z);
 
       if (!len) {
-          result.dest[0] = 0;
-          result.dest[1] = 0;
-          result.dest[2] = 0;
+          result.dest[0] = 0.0;
+          result.dest[1] = 0.0;
+          result.dest[2] = 0.0;
           return result;
       } else if (len === 1) {
           result.dest[0] = x;
@@ -279,26 +264,56 @@ class Vector3 {
       result.dest[2] = z * len;
       return result;
   }
+  
+  void normalize() {
+    Normalize(this,this);
+  }
 
-  /**
+ /**
    * Generates the cross product of two vec3s
    *
-   * @param {vec3} vec First operand
-   * @param {vec3} vec2 Second operand
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
+   * [vec] First operand
+   * [vec3] vec2 Second operand
+   * [result] receiving operation result. If not specified result is written to vec
    *
    * @returns {vec3} dest if specified, vec otherwise
    */
   static Vector3 Cross(Vector3 vec, Vector3 vec2, [Vector3 result]) {
-      if(result == null) result = new Vector3.zero();
+    if(result == null) result = new Vector3.zero();
 
-      var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2],
-          x2 = vec2.dest[0], y2 = vec2.dest[1], z2 = vec2.dest[2];
+    var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2],
+        x2 = vec2.dest[0], y2 = vec2.dest[1], z2 = vec2.dest[2];
 
-      result.dest[0] = y * z2 - z * y2;
-      result.dest[1] = z * x2 - x * z2;
-      result.dest[2] = x * y2 - y * x2;
-      return result;
+    result.dest[0] = y * z2 - z * y2;
+    result.dest[1] = z * x2 - x * z2;
+    result.dest[2] = x * y2 - y * x2;
+    return result;
+  }
+  
+ /**
+   *  Restricts a value to be within a specified range.
+   *  [value] The value to clamp.
+   *  [min] The minimum value.
+   *  [max] The maximum value.
+   *  [result] When the method completes, contains the clamped value.
+   */
+  static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max, [Vector3 result])
+  {
+    if(result == null) result = new Vector3.zero();
+    double x = value.X;
+    x = (x > max.X) ? max.X : x;
+    x = (x < min.X) ? min.X : x;
+
+    double y = value.Y;
+    y = (y > max.Y) ? max.Y : y;
+    y = (y < min.Y) ? min.Y : y;
+
+    double z = value.Z;
+    z = (z > max.Z) ? max.Z : z;
+    z = (z < min.Z) ? min.Z : z;
+
+    result.setXYZ(x, y, z);
+    return result;
   }
 
   /**
@@ -308,7 +323,7 @@ class Vector3 {
    *
    * @returns {number} Length of vec
    */
-  num get length() => Math.sqrt(Math.pow(X,2) + Math.pow(Y,2) + Math.pow(Z,2) );
+  double get length() => Math.sqrt(Math.pow(X,2) + Math.pow(Y,2) + Math.pow(Z,2) );
  
 
   /**
@@ -319,9 +334,10 @@ class Vector3 {
    *
    * @returns {number} Dot product of vec and vec2
    */
-  static num Dot(Vector3 vec, Vector3 vec2) {
+  static double Dot(Vector3 vec, Vector3 vec2) {
       return vec.dest[0] * vec2.dest[0] + vec.dest[1] * vec2.dest[1] + vec.dest[2] * vec2.dest[2];
   }
+  double dot(Vector3 other) => Dot(this,other);
 
   /**
    * Generates a unit vector pointing from one vector to another
@@ -341,9 +357,9 @@ class Vector3 {
           len = Math.sqrt(x * x + y * y + z * z);
 
       if (!len) {
-          result.dest[0] = 0;
-          result.dest[1] = 0;
-          result.dest[2] = 0;
+          result.dest[0] = 0.0;
+          result.dest[1] = 0.0;
+          result.dest[2] = 0.0;
           return result;
       }
 
@@ -364,7 +380,7 @@ class Vector3 {
    *
    * @returns {vec3} dest if specified, vec otherwise
    */
-  static Vector3 Lerp(Vector3 vec, Vector3 vec2, num lerpVal, [Vector3 result]) {
+  static Vector3 Lerp(Vector3 vec, Vector3 vec2, double lerpVal, [Vector3 result]) {
       if(result == null) result = new Vector3.zero();
       
       
@@ -385,14 +401,24 @@ class Vector3 {
    *
    * @returns {number} Distance between vec and vec2
    */
-  static double Dist(Vector3 vec, Vector3 vec2) {
+  static double Distance(Vector3 vec, Vector3 vec2) {
       var x = vec2.dest[0] - vec.dest[0],
           y = vec2.dest[1] - vec.dest[1],
           z = vec2.dest[2] - vec.dest[2];
           
       return Math.sqrt(x*x + y*y + z*z);
   }
-  double distance(Vector3 other) => Vector3.Dist(this, other);
+  double distance(Vector3 other) => Vector3.Distance(this, other);
+  
+  static double DistanceSquared(Vector3 vec, Vector3 vec2) {
+    var x = vec2.dest[0] - vec.dest[0],
+        y = vec2.dest[1] - vec.dest[1],
+        z = vec2.dest[2] - vec.dest[2];
+        
+    return (x*x + y*y + z*z);
+  }
+  double distanceSquared(Vector3 other) => Vector3.DistanceSquared(this, other);
+
 
   /**
    * Projects the specified vec3 from screen space into object space
@@ -407,10 +433,10 @@ class Vector3 {
    * @returns {vec3} dest if specified, vec otherwise
    */
   static Vector4 Unproject(Vector3 vec, Matrix view, Matrix proj, Vector4 viewport, [Vector4 result]) {
-      if(result == null) result = new Vector4();
+      if(result == null) result = new Vector4.zero();
 
       Matrix m = new Matrix.zero();
-      Vector4 v = new Vector4();
+      Vector4 v = new Vector4.zero();
       
       v.dest[0] = (vec.dest[0] - viewport.dest[0]) * 2.0 / viewport.dest[2] - 1.0;
       v.dest[1] = (vec.dest[1] - viewport.dest[1]) * 2.0 / viewport.dest[3] - 1.0;
@@ -437,7 +463,7 @@ class Vector3 {
    *
    * @returns {string} String representation of vec
    */
-  String toString() => '[' + dest[0] + ', ' + dest[1] + ', ' + dest[2] + ']';
+  String toString() => '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ']';
   
   int hashCode() => X.hashCode() + Y.hashCode() + Z.hashCode();
   
