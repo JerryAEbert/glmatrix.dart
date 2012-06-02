@@ -12,6 +12,6 @@ class Vector2 {
   double get X() => dest[0];
   void set X(double x) { dest[0] = x; }
   
-  double get Y() => dest[0];
-  void set Y(double y) { dest[0] = y; }
+  double get Y() => dest[1];
+  void set Y(double y) { dest[1] = y; }
 }
