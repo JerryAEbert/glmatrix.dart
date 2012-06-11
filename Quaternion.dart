@@ -1,8 +1,3 @@
-
-
-/*
- * quat4
- */
 class Quaternion {
 
   //Float32Array dest;

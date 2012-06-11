@@ -137,12 +137,7 @@ class Matrix {
   }
   
   /**
-   * Copies the values of one mat4 to another
-   *
-   * @param {mat4} mat mat4 containing values to copy
-   * @param {mat4} dest mat4 receiving copied values
-   *
-   * Returns result
+   * Clones [mat] to [result] or to an new Matrix.
    */
   static Matrix Clone(Matrix mat, [Matrix result]) {
     if(result == null) return new Matrix.fromMatrix(mat);
@@ -150,14 +145,13 @@ class Matrix {
       result.dest[i] = mat.dest[i];
     return result;
   }
+  /**
+   * Clones [this] to [result] or to an new Matrix.
+   */
   Matrix clone([Matrix result]) => Matrix.Clone(this,result);
   
   /**
-   * Sets a mat4 to an identity matrix
-   *
-   * @param {mat4} dest mat4 to set
-   *
-   * Returns result
+   * Sets [result] to an identity matrix
    */
   static Matrix Identity([Matrix result]) {
     if(result == null) return new Matrix.identity();
@@ -183,16 +177,13 @@ class Matrix {
     
     return result;
   }
-  
+  /**
+   * Sets this to an identity matrix
+   */
   Matrix indentify() => Matrix.Identity(this);
   
   /**
-   * Transposes a mat4 (flips the values over the diagonal)
-   *
-   * @param {mat4} mat mat4 to transpose
-   * @param {mat4} [dest] mat4 receiving transposed values. If not specified result is written to mat
-   *
-   * @param {mat4} dest is specified, mat otherwise
+   * Transposes [mat] (flips the values over the diagonal) to [result] or a new Matrix
    */
   static Matrix Transpose(Matrix mat, [Matrix result]) {
       // If we are transposing ourselves we can skip a few steps but have to cache some values
@@ -235,14 +226,13 @@ class Matrix {
       result.dest[15] = mat.dest[15];
       return result;
   }
+  /**
+   * Transposes [this] (flips the values over the diagonal)
+   */
   Matrix transpose() => Transpose(this,this);
   
   /**
-   * Calculates the determinant of a mat4
-   *
-   * @param {mat4} mat mat4 to calculate determinant of
-   *
-   * @returns {number} determinant of mat
+   * Calculates the determinant of [this]
    */
   double get determinant() {
       // Cache the matrix values (makes for huge speed increases!)
@@ -260,12 +250,7 @@ class Matrix {
   }
   
   /**
-   * Calculates the inverse matrix of a mat4
-   *
-   * @param {mat4} mat mat4 to calculate inverse of
-   * @param {mat4} [dest] mat4 receiving inverse matrix. If not specified result is written to mat
-   *
-   * @param {mat4} dest is specified, mat otherwise, null if matrix cannot be inverted
+   * Calculates the inverse matrix of [mat] writes it optinally in [result] or creates a new Matrix as return value.
    */
   static Matrix Inverse(Matrix mat, [Matrix result]) {
       if(result == null) { result = mat; }
@@ -290,10 +275,10 @@ class Matrix {
           b11 = a22 * a33 - a23 * a32,
   
           d = (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06),
-          invDet;
+          invDet = 0.0;
   
           // Calculate the determinant
-          if (!d) { return null; }
+          if (d == null || d.isNaN() ) { return null; }
           invDet = 1 / d;
   
       result.dest[0] = (a11 * b11 - a12 * b10 + a13 * b09) * invDet;
@@ -315,15 +300,13 @@ class Matrix {
   
       return result;
   }
+  /**
+   * Inverse [mat]
+   */
   Matrix inverse() => Matrix.Inverse(this,this);
   
   /**
-   * Copies the upper 3x3 elements of a mat4 into another mat4
-   *
-   * @param {mat4} mat mat4 containing values to copy
-   * @param {mat4} [dest] mat4 receiving copied values
-   *
-   * Returns result is specified, a new mat4 otherwise
+   * Copies the upper 3x3 elements of [mat] into [result] or an new Matrix as return value.
    */
   static Matrix ToRotationMat(Matrix mat, [Matrix result]) {
       if(result == null) result = new Matrix.zero();
@@ -349,12 +332,7 @@ class Matrix {
   }
   
   /**
-   * Copies the upper 3x3 elements of a mat4 into a mat3
-   *
-   * @param {mat4} mat mat4 containing values to copy
-   * @param {mat3} [dest] mat3 receiving copied values
-   *
-   * @returns {mat3} dest is specified, a new mat3 otherwise
+   * Copies the upper 3x3 elements of [mat] into [result] or an new Matrix3 as return value.
    */
   static Matrix3 ToMat3(Matrix mat, [Matrix3 result]) {
       if(result == null) { result = new Matrix3.zero(); }
@@ -373,14 +351,8 @@ class Matrix {
   }
   
   /**
-   * Calculates the inverse of the upper 3x3 elements of a mat4 and copies the result into a mat3
-   * The resulting matrix is useful for calculating transformed normals
-   *
-   * Params:
-   * @param {mat4} mat mat4 containing values to invert and copy
-   * @param {mat3} [dest] mat3 receiving values
-   *
-   * @returns {mat3} dest is specified, a new mat3 otherwise, null if the matrix cannot be inverted
+   * Calculates the inverse of the upper 3x3 elements of [mat] 
+   * Writes it into [result] or creates a new Matrix if not specified.
    */
   static Matrix3 ToInverseMat3(Matrix mat, [Matrix3 result]) {
       // Cache the matrix values (makes for huge speed increases!)
@@ -414,7 +386,8 @@ class Matrix {
   }
   
   /**
-   * Performs a matrix multiplication
+   * Performs a matrix multiplication between [mat] and [mat2]
+   * Writes it into [result] or creates a new Matrix if not specified.
    *
    * @param {mat4} mat First operand
    * @param {mat4} mat2 Second operand
@@ -468,7 +441,7 @@ class Matrix {
    * @returns {vec3} dest if specified, vec otherwise
    */
   static Vector3 MultiplyVec3(Matrix mat, Vector3 vec, [Vector3 result]) {
-      if(result == null) { result = vec; }
+      if(result == null) result = new Vector3.zero();
   
       var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2];
   
@@ -502,13 +475,8 @@ class Matrix {
   }
   
   /**
-   * Translates a matrix by the given vector
-   *
-   * @param {mat4} mat mat4 to translate
-   * @param {vec3} vec vec3 specifying the translation
-   * @param {mat4} [dest] mat4 receiving operation result. If not specified result is written to mat
-   *
-   * Returns result if specified, mat otherwise
+   * Translates [mat] by the given [vec]
+   * Writes it into [result] or creates a new Matrix if not specified.
    */
   static Matrix Translate(Matrix mat, Vector3 vec, [Matrix result]) {
       var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2],
@@ -542,13 +510,8 @@ class Matrix {
   Matrix translate(Vector3 vec) => Matrix.Translate(this, vec, this);
   
   /**
-   * Scales a matrix by the given vector
-   *
-   * @param {mat4} mat mat4 to scale
-   * @param {vec3} vec vec3 specifying the scale for each axis
-   * @param {mat4} [dest] mat4 receiving operation result. If not specified result is written to mat
-   *
-   * @param {mat4} dest if specified, mat otherwise
+   * Scales [mat] by [vec].
+   * Writes it into [result] or creates a new Matrix if not specified.
    */
   static Matrix Scale(Matrix mat, Vector3 vec, [Matrix result]) {
       var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2];
@@ -589,15 +552,10 @@ class Matrix {
   }
   
   /**
-   * Rotates a matrix by the given angle around the specified axis
-   * If rotating around a primary axis (X,Y,Z) one of the specialized rotation functions should be used instead for performance
-   *
-   * @param {mat4} mat mat4 to rotate
-   * @param {number} angle Angle (in radians) to rotate
-   * @param {vec3} axis vec3 representing the axis to rotate around 
-   * @param {mat4} [dest] mat4 receiving operation result. If not specified result is written to mat
-   *
-   * Returns result if specified, mat otherwise
+   * Rotates [mat] by the given [angle] around the specified [axis]
+   * Writes it into [result] or creates a new Matrix if not specified.
+   * If rotating around a primary axis (X,Y,Z) one of the specialized 
+   * rotation functions should be used instead for performance
    */
   static Matrix Rotate(Matrix mat, double angle, Vector3 axis, [Matrix result]) {
       var x = axis.dest[0], y = axis.dest[1], z = axis.dest[2],
@@ -1055,11 +1013,7 @@ class Matrix {
   
   
   /**
-   * Returns a string representation of a mat4
-   *
-   * @param {mat4} mat mat4 to represent as a string
-   *
-   * @returns {string} String representation of mat
+   * Returns a string representation of this Matrix
    */
   String toString() {
       return '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ', ' + dest[3].toString() +

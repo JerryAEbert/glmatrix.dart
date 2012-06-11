@@ -79,16 +79,14 @@ class Vector3 {
     dest[1] = y;
     dest[2] = z;
   }
+  
+  
 
   
   
   /**
-   * Copies the values of one vec3 to another
-   *
-   * @param {vec3} vec vec3 containing values to copy
-   * @param {vec3} dest vec3 receiving copied values
-   *
-   * @returns {vec3} dest
+   * Clones object [vec].
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Clone(Vector3 vec, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
@@ -98,74 +96,72 @@ class Vector3 {
     return result;
   }
   
+  /// Clones this Vector3 object
   Vector3 clone([Vector3 result]) {
     return Vector3.Clone(this, result);
   }
 
   /**
-   * Performs a vector addition
-   *
-   * @param {vec3} vec First operand
-   * @param {vec3} vec2 Second operand
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Performs a vector addition between [vec] and [other].
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static Vector3 Add(Vector3 vec, Vector3 vec2, [Vector3 result]) {
-    if(result == null) result = new Vector3.zero();
-  
-    result.dest[0] = vec.dest[0] + vec2.dest[0];
-    result.dest[1] = vec.dest[1] + vec2.dest[1];
-    result.dest[2] = vec.dest[2] + vec2.dest[2];
-    return result;
+  static Vector3 Add(Vector3 vec, Vector3 other, [Vector3 result]) {
+      if (result == null || vec === result) {
+          vec.dest[0] += other.dest[0];
+          vec.dest[1] += other.dest[1];
+          vec.dest[2] += other.dest[2];
+          return vec;
+      }
+
+      result.dest[0] = vec.dest[0] + other.dest[0];
+      result.dest[1] = vec.dest[1] + other.dest[1];
+      result.dest[2] = vec.dest[2] + other.dest[2];
+      return result;
   }
   void add(Vector3 vec) { Vector3.Add(this, vec, this); }
   /**
-   * Performs a vector subtraction
-   *
-   * @param {vec3} vec First operand
-   * @param {vec3} vec2 Second operand
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Performs a vector subtraction between [vec] and [other].
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static Vector3 Subtract(Vector3 vec, Vector3 vec2, [Vector3 result]) {
-    if(result == null) result = new Vector3.zero();
-  
-    result.dest[0] = vec.dest[0] - vec2.dest[0];
-    result.dest[1] = vec.dest[1] - vec2.dest[1];
-    result.dest[2] = vec.dest[2] - vec2.dest[2];
-    return result;
+  static Vector3 Subtract(Vector3 vec, Vector3 other, [Vector3 result]) {
+      if (result == null || vec === result) {
+          vec.dest[0] -= other.dest[0];
+          vec.dest[1] -= other.dest[1];
+          vec.dest[2] -= other.dest[2];
+          return vec;
+      }
+
+      result.dest[0] = vec.dest[0] - other.dest[0];
+      result.dest[1] = vec.dest[1] - other.dest[1];
+      result.dest[2] = vec.dest[2] - other.dest[2];
+      return result;
   }
   Vector3 subtract(Vector3 vec) => Vector3.Subtract(this, vec, this);
 
   /**
-   * Performs a vector multiplication
-   *
-   * @param {vec3} vec First operand
-   * @param {vec3} vec2 Second operand
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Performs a vector multiplication between [vec] and [other].
+   * writes it into [result] or creates a new Vector3 if not specified
    */
-  static Vector3 Multiply(Vector3 vec, Vector3 vec2, [Vector3 result]) {
+  static Vector3 Multiply(Vector3 vec, Vector3 other, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
+      if (result == null || vec === result) {
+          vec.dest[0] *= other.dest[0];
+          vec.dest[1] *= other.dest[1];
+          vec.dest[2] *= other.dest[2];
+          return vec;
+      }
 
-    result.dest[0] = vec.dest[0] * vec2.dest[0];
-    result.dest[1] = vec.dest[1] * vec2.dest[1];
-    result.dest[2] = vec.dest[2] * vec2.dest[2];
-    return result;
+      result.dest[0] = vec.dest[0] * other.dest[0];
+      result.dest[1] = vec.dest[1] * other.dest[1];
+      result.dest[2] = vec.dest[2] * other.dest[2];
+      return result;
   }
-  Vector3 multiply(Vector3 vec) => Multiply(this,vec,this);
+/// Performs a vector multiplication between this and [other].
+  Vector3 multiply(Vector3 other) => Multiply(this,other,this);
 
   /**
-   * Transforms a vec3 with the given quaternion
-   *
-   * @param {quat4} quat quat4 to transform the vector with
-   * @param {vec3} vec vec3 to transform
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns dest if specified, vec otherwise
+   * Transforms a [vec] with the given [quat]
+   * Writes it into [result] or creates a new Vector3 if not specified
    */
   static Vector3 MultiplyQuat( Vector3 vec, Quaternion quat, [Vector3 result]) {
       if(result == null) { result = new Vector3.zero(); }
@@ -191,12 +187,8 @@ class Vector3 {
   
   
   /**
-   * Negates the components of a vec3
-   *
-   * @param {vec3} vec vec3 to negate
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Negates the components of a [vec]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Negate(Vector3 vec, [Vector3 result]) {
       if(result == null) result = new Vector3.zero();
@@ -206,16 +198,12 @@ class Vector3 {
       result.dest[2] = -vec.dest[2];
       return result;
   }
+  /// Negate this
   Vector3 negate() => Vector3.Negate(this,this);
 
   /**
-   * Multiplies the components of a vec3 by a scalar value
-   *
-   * @param {vec3} vec vec3 to scale
-   * @param {number} val Value to scale by
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Multiplies the components of [vec] by a scalar value [val]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Scale(Vector3 vec, double val, [Vector3 result]) {
       if (result == null || vec === result) {
@@ -230,15 +218,15 @@ class Vector3 {
       result.dest[2] = vec.dest[2] * val;
       return result;
   }
+  
+  void scale(double scaleVal) {
+    Scale(this,scaleVal, this);
+  }
 
   /**
-   * Generates a unit vector of the same direction as the provided vec3
+   * Generates a unit vector of the same direction as the provided [vec]
    * If vector length is 0, returns [0, 0, 0]
-   *
-   * @param {vec3} vec vec3 to normalize
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Normalize(Vector3 vec, [Vector3 result]) {
       if(result == null) result = new Vector3.zero();
@@ -264,25 +252,21 @@ class Vector3 {
       result.dest[2] = z * len;
       return result;
   }
-  
+  /// Normalize this
+  /// If vector length is 0, returns [0, 0, 0]
   void normalize() {
     Normalize(this,this);
   }
 
  /**
-   * Generates the cross product of two vec3s
-   *
-   * [vec] First operand
-   * [vec3] vec2 Second operand
-   * [result] receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Generates the cross product of [vec] and [other]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static Vector3 Cross(Vector3 vec, Vector3 vec2, [Vector3 result]) {
+  static Vector3 Cross(Vector3 vec, Vector3 other, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
 
     var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2],
-        x2 = vec2.dest[0], y2 = vec2.dest[1], z2 = vec2.dest[2];
+        x2 = other.dest[0], y2 = other.dest[1], z2 = other.dest[2];
 
     result.dest[0] = y * z2 - z * y2;
     result.dest[1] = z * x2 - x * z2;
@@ -291,11 +275,8 @@ class Vector3 {
   }
   
  /**
-   *  Restricts a value to be within a specified range.
-   *  [value] The value to clamp.
-   *  [min] The minimum value.
-   *  [max] The maximum value.
-   *  [result] When the method completes, contains the clamped value.
+   *  Restricts [value] to be within [min] and [max].
+   *  Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Clamp(Vector3 value, Vector3 min, Vector3 max, [Vector3 result])
   {
@@ -315,45 +296,34 @@ class Vector3 {
     result.setXYZ(x, y, z);
     return result;
   }
+  /// Restricts this to be within [min] and [max].
+  void clamp(Vector3 min, Vector3 max) {
+    Clamp(this,min,max,this);
+  }
 
-  /**
-   * Caclulates the length of a vec3
-   *
-   * @param {vec3} vec vec3 to calculate length of
-   *
-   * @returns {number} Length of vec
-   */
+  /// Caclulates the length of this
   double get length() => Math.sqrt(Math.pow(X,2) + Math.pow(Y,2) + Math.pow(Z,2) );
  
 
   /**
-   * Caclulates the dot product of two vec3s
-   *
-   * @param {vec3} vec First operand
-   * @param {vec3} vec2 Second operand
-   *
-   * @returns {number} Dot product of vec and vec2
+   * Caclulates the dot product of [vec] and [other]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static double Dot(Vector3 vec, Vector3 vec2) {
-      return vec.dest[0] * vec2.dest[0] + vec.dest[1] * vec2.dest[1] + vec.dest[2] * vec2.dest[2];
+  static double Dot(Vector3 vec, Vector3 other) {
+      return vec.dest[0] * other.dest[0] + vec.dest[1] * other.dest[1] + vec.dest[2] * other.dest[2];
   }
   double dot(Vector3 other) => Dot(this,other);
 
   /**
    * Generates a unit vector pointing from one vector to another
-   *
-   * @param {vec3} vec Origin vec3
-   * @param {vec3} vec2 vec3 to point to
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static Vector3 Direction(Vector3 vec, Vector3 vec2, [Vector3 result]) {
+  static Vector3 Direction(Vector3 vec, Vector3 other, [Vector3 result]) {
       if(result == null) result = new Vector3.zero();
 
-      var x = vec.dest[0] - vec2.dest[0],
-          y = vec.dest[1] - vec2.dest[1],
-          z = vec.dest[2] - vec2.dest[2],
+      var x = vec.dest[0] - other.dest[0],
+          y = vec.dest[1] - other.dest[1],
+          z = vec.dest[2] - other.dest[2],
           len = Math.sqrt(x * x + y * y + z * z);
 
       if (!len) {
@@ -371,49 +341,43 @@ class Vector3 {
   }
 
   /**
-   * Performs a linear interpolation between two vec3
-   *
-   * @param {vec3} vec First vector
-   * @param {vec3} vec2 Second vector
-   * @param {number} lerp Interpolation amount between the two inputs
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
+   * Performs a linear interpolation with [lerpVal] between [vec] and [other]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static Vector3 Lerp(Vector3 vec, Vector3 vec2, double lerpVal, [Vector3 result]) {
+  static Vector3 Lerp(Vector3 vec, Vector3 other, double lerpVal, [Vector3 result]) {
       if(result == null) result = new Vector3.zero();
       
       
 
-      result.dest[0] = vec.dest[0] + lerpVal * (vec2.dest[0] - vec.dest[0]);
-      result.dest[1] = vec.dest[1] + lerpVal * (vec2.dest[1] - vec.dest[1]);
-      result.dest[2] = vec.dest[2] + lerpVal * (vec2.dest[2] - vec.dest[2]);
+      result.dest[0] = vec.dest[0] + lerpVal * (other.dest[0] - vec.dest[0]);
+      result.dest[1] = vec.dest[1] + lerpVal * (other.dest[1] - vec.dest[1]);
+      result.dest[2] = vec.dest[2] + lerpVal * (other.dest[2] - vec.dest[2]);
 
       return result;
   }
+  /// Performs a linear interpolation with [lerpVal] between [this] and [other]
+  void lerp(Vector3 other, double lerpVal) {
+    Lerp(this, other, lerpVal, this);
+  }
+  
 
   /**
-   * Calculates the euclidian distance between two vec3
-   *
-   * Params:
-   * @param {vec3} vec First vector
-   * @param {vec3} vec2 Second vector
-   *
-   * @returns {number} Distance between vec and vec2
+   * Calculates the euclidian distance between [vec] and [other]
+   * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static double Distance(Vector3 vec, Vector3 vec2) {
-      var x = vec2.dest[0] - vec.dest[0],
-          y = vec2.dest[1] - vec.dest[1],
-          z = vec2.dest[2] - vec.dest[2];
+  static double Distance(Vector3 vec, Vector3 other) {
+      var x = other.dest[0] - vec.dest[0],
+          y = other.dest[1] - vec.dest[1],
+          z = other.dest[2] - vec.dest[2];
           
       return Math.sqrt(x*x + y*y + z*z);
   }
   double distance(Vector3 other) => Vector3.Distance(this, other);
   
-  static double DistanceSquared(Vector3 vec, Vector3 vec2) {
-    var x = vec2.dest[0] - vec.dest[0],
-        y = vec2.dest[1] - vec.dest[1],
-        z = vec2.dest[2] - vec.dest[2];
+  static double DistanceSquared(Vector3 vec, Vector3 other) {
+    var x = other.dest[0] - vec.dest[0],
+        y = other.dest[1] - vec.dest[1],
+        z = other.dest[2] - vec.dest[2];
         
     return (x*x + y*y + z*z);
   }
@@ -421,7 +385,7 @@ class Vector3 {
 
 
   /**
-   * Projects the specified vec3 from screen space into object space
+   * Projects the [vec] from screen space into object space
    * Based on the <a href="http://webcvs.freedesktop.org/mesa/Mesa/src/glu/mesa/project.c?revision=1.4&view=markup">Mesa gluUnProject implementation</a>
    *
    * @param {vec3} vec Screen-space vector to project
@@ -457,11 +421,7 @@ class Vector3 {
   }
 
   /**
-   * Returns a string representation of a vector
-   *
-   * @param {vec3} vec Vector to represent as a string
-   *
-   * @returns {string} String representation of vec
+   * Returns a string representation of this vector
    */
   String toString() => '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ']';
   
