@@ -339,6 +339,23 @@ class Vector3 {
       result.dest[2] = z * len;
       return result;
   }
+  
+  /**
+   * Transforms [vec] with the [mat], writes it into [result] or into an new Vector3
+   * 4th vector component is implicitly '1'
+   */
+  static Vector3 MultiplyVec3(Vector3 vec, Matrix mat, [Vector3 result]) {
+      if(result == null) result = new Vector3.zero();
+  
+      var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2];
+  
+      result.dest[0] = mat.dest[0] * x + mat.dest[4] * y + mat.dest[8] * z + mat.dest[12];
+      result.dest[1] = mat.dest[1] * x + mat.dest[5] * y + mat.dest[9] * z + mat.dest[13];
+      result.dest[2] = mat.dest[2] * x + mat.dest[6] * y + mat.dest[10] * z + mat.dest[14];
+  
+      return result;
+  }
+  
 
   /**
    * Performs a linear interpolation with [lerpVal] between [vec] and [other]

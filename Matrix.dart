@@ -430,27 +430,7 @@ class Matrix {
   }
   Matrix multiply([Matrix mat]) => Matrix.Multiply(this, mat, this);
   
-  /**
-   * Transforms a vec3 with the given matrix
-   * 4th vector component is implicitly '1'
-   *
-   * @param {mat4} mat mat4 to transform the vector with
-   * @param {vec3} vec vec3 to transform
-   * @param {vec3} [dest] vec3 receiving operation result. If not specified result is written to vec
-   *
-   * @returns {vec3} dest if specified, vec otherwise
-   */
-  static Vector3 MultiplyVec3(Matrix mat, Vector3 vec, [Vector3 result]) {
-      if(result == null) result = new Vector3.zero();
-  
-      var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2];
-  
-      result.dest[0] = mat.dest[0] * x + mat.dest[4] * y + mat.dest[8] * z + mat.dest[12];
-      result.dest[1] = mat.dest[1] * x + mat.dest[5] * y + mat.dest[9] * z + mat.dest[13];
-      result.dest[2] = mat.dest[2] * x + mat.dest[6] * y + mat.dest[10] * z + mat.dest[14];
-  
-      return result;
-  }
+
   
   /**
    * Transforms a vec4 with the given matrix
