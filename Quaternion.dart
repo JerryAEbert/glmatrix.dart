@@ -1,12 +1,9 @@
 class Quaternion implements Hashable {
   static final PIOVER180 = Math.PI/180;
 
-  //Float32Array dest;
   Float32Array dest;
 
-  
-  
-  // internal recycleSystem ... Green Vectors!
+  // internal recycleSystem
   
   Quaternion._internal() {
     dest = new Float32Array(4);

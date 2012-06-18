@@ -1,5 +1,4 @@
 class Vector2 implements Hashable {
-  //Float32Array dest;
   Float32Array dest;
   
   Vector2(double x, double y) {
