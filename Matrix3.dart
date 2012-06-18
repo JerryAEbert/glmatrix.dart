@@ -196,8 +196,8 @@ Matrix ToMat4(Matrix3 mat, [Matrix result]) {
  * @param {string} String representation of mat
  */
 String toString() {
-    return '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() +
-        ', ' + dest[3].toString() + ', ' + dest[4].toString() + ', ' + dest[5].toString() +
-        ', ' + dest[6].toString() + ', ' + dest[7].toString() + ', ' + dest[8].toString() + ']';
+    return "[$m11, $m12, $m13, "
+            "$m21, $m22, $m23, "
+            "$m31, $m32, $m33]";
 }  
 }

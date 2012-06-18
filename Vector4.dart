@@ -40,7 +40,7 @@ class Vector4 {
   }
   
   factory Vector4.zero() {
-    return _createVector;
+    return _createVector();
   }
   
   factory Vector4.fromList(List<double> list) {
@@ -61,5 +61,10 @@ class Vector4 {
   void set Z(double val) { dest[2] = val;}
   double get W() => dest[3];
   void set W(double val) { dest[3] = val;}
+  
+  /**
+   * Returns a string representation of this vector
+   */
+  String toString() => "[$X, $Y, $Z, $W]";
   
 }

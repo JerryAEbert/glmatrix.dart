@@ -1,4 +1,4 @@
-class Vector2 {
+class Vector2 implements Hashable {
   //Float32Array dest;
   Float32Array dest;
   
@@ -14,4 +14,19 @@ class Vector2 {
   
   double get Y() => dest[1];
   void set Y(double y) { dest[1] = y; }
+  
+  String toString() => "[$X, $Y]";
+  
+  bool operator==(Object object) {
+    if (object is! Vector2) return false;  
+    return X == object.X && Y == object.Y;
+  }
+  
+  int hashCode() {
+    var erg  = 37;
+        erg += 37 * X.hashCode();
+        erg += 37 * Y.hashCode() * erg;
+    return erg;
+  }
+
 }

@@ -7,6 +7,7 @@ class Matrix {
   static List<Matrix> _recycled;
   
   void recycle() {
+    return;
     if(_recycled == null) _recycled = new List<Matrix>();
     _recycled.add(this);
   }
@@ -395,7 +396,7 @@ class Matrix {
    *
    * Returns result if specified, mat otherwise
    */
-  static Matrix Multiply(Matrix mat, mat2, [Matrix result]) {
+  static Matrix Multiply(Matrix mat, Matrix mat2, [Matrix result]) {
       if(result == null) { result = new Matrix.zero(); }
   
       // Cache the matrix values (makes for huge speed increases!)
@@ -882,7 +883,7 @@ class Matrix {
       x1 = upz * z0 - upx * z2;
       x2 = upx * z1 - upy * z0;
       len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
-      if (!len) {
+      if (len.isNaN()) {
           x0 = 0.0;
           x1 = 0.0;
           x2 = 0.0;
@@ -899,7 +900,7 @@ class Matrix {
       y2 = z0 * x1 - z1 * x0;
   
       len = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
-      if (!len) {
+      if (len.isNaN()) {
           y0 = 0.0;
           y1 = 0.0;
           y2 = 0.0;
@@ -931,6 +932,11 @@ class Matrix {
   }
   Matrix lookAt(Vector3 eye, Vector3 center, Vector3 up)
         => Matrix.LookAt(eye,center,up,this);
+  
+  
+  
+  
+
   
   /**
    * Creates a matrix from a quaternion rotation and vector translation
@@ -996,9 +1002,9 @@ class Matrix {
    * Returns a string representation of this Matrix
    */
   String toString() {
-      return '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ', ' + dest[3].toString() +
-          ', ' + dest[4].toString() + ', ' + dest[5].toString() + ', ' + dest[6].toString() + ', ' + dest[7].toString() +
-          ', ' + dest[8].toString() + ', ' + dest[9].toString() + ', ' + dest[10].toString() + ', ' + dest[11].toString() +
-          ', ' + dest[12].toString() + ', ' + dest[13].toString() + ', ' + dest[14].toString() + ', ' + dest[15].toString() + ']';
+      return "[$m11, $m12, $m13, $m14, "
+              "$m21, $m22, $m23, $m24, "
+              "$m31, $m32, $m33, $m34, "
+              "$m41, $m42, $m43, $m44]";
   }  
 }

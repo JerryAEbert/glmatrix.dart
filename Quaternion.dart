@@ -1,4 +1,5 @@
-class Quaternion {
+class Quaternion implements Hashable {
+  static final PIOVER180 = Math.PI/180;
 
   //Float32Array dest;
   Float32Array dest;
@@ -42,13 +43,51 @@ class Quaternion {
     quat.W = list[3] == null ? 0 : list[3];
     return quat;
   }
+  factory Quaternion.fromEuler(double pitch, double yaw, double roll) {
+  // from: http://content.gpwiki.org/index.php/OpenGL:Tutorials:Using_Quaternions_to_represent_rotation
+    Quaternion result = _createQuaternion();
+    double p = pitch * PIOVER180 / 2.0;
+    double y = yaw * PIOVER180 / 2.0;
+    double r = roll * PIOVER180 / 2.0;
+   
+    double sinp = Math.sin(p);
+    double siny = Math.sin(y);
+    double sinr = Math.sin(r);
+    double cosp = Math.cos(p);
+    double cosy = Math.cos(y);
+    double cosr = Math.cos(r);
+   
+    result.X = sinr * cosp * cosy - cosr * sinp * siny;
+    result.Y = cosr * sinp * cosy + sinr * cosp * siny;
+    result.Z = cosr * cosp * siny - sinr * sinp * cosy;
+    result.W = cosr * cosp * cosy + sinr * sinp * siny;
+    result.normalize(); 
+    return result;
+  }
+  factory Quaternion.fromDirection(Vector3 vecDir) {
+    Quaternion result = _createQuaternion();
+    Vector3 vUp = new Vector3(0.0, 0.0, 1.0);
+    Vector3 vRight = Vector3.Cross(vUp, vecDir);
+    vUp = Vector3.Cross(vecDir, vRight, vUp);
   
-  factory Quaternion(double x, double y, double z, double w) {
+    result.W = Math.sqrt(1.0 + vRight.X + vUp.Y + vecDir.Z) / 2.0;
+   
+    double scale = result.W * 4.0;
+   
+    result.X = ((vecDir.Y - vUp.Z) / scale);
+    result.Y = ((vRight.Z - vecDir.X) / scale);
+    result.Z = ((vUp.X - vRight.Y) / scale);
+    vUp.recycle();
+    vRight.recycle();
+    return result.normalize();
+  }
+  
+  factory Quaternion(double x, double y, double z, [double w]) {
     Quaternion quat = _createQuaternion();
     quat.dest[0] = x;
     quat.dest[1] = y;
     quat.dest[2] = z;
-    quat.dest[2] = w;
+    quat.dest[2] = w == null ? 1.0 : w;
     return quat;
   }
   
@@ -107,6 +146,232 @@ class Quaternion {
       result.dest[3] = -Math.sqrt((1.0 - x * x - y * y - z * z).abs());
       return result;
   }
+  Quaternion calcW() =>CalculateW(this,this);
+  
+  Quaternion identify() {
+    X = 0.0;
+    Y = 0.0;
+    Z = 0.0;
+    W = 1.0;
+    return this;
+  }
+  /**
+   * <code>lookAt</code> is a convienence method for auto-setting the
+   * quaternion based on a direction and an up vector. It computes
+   * the rotation to transform the z-axis to point into 'direction'
+   * and the y-axis to 'up'.
+   *
+   * @param direction
+   *            where to look at in terms of local coordinates
+   * @param up
+   *            a vector indicating the local up direction.
+   *            (typically {0, 1, 0} in jME.)
+   */
+  static Quaternion LookAt(Vector3 direction, Vector3 up, [Quaternion result]) {
+    Vector3 z = Vector3.Normalize(direction);
+    Vector3 x = Vector3.Cross(up,direction);
+    Vector3 y = Vector3.Cross(direction,x);
+
+    result = FromAxes(x,y,z, result);
+    x.recycle();
+    y.recycle();
+    z.recycle();
+    return result;
+  }
+  Quaternion lookAt(Vector3 direction, Vector3 upDir) => LookAt(direction,upDir,this);
+  
+  
+  
+  static Quaternion FromAxes(Vector3 xAxis, Vector3 yAxis, Vector3 zAxis, [Quaternion result]) {
+    return fromRotationMatrix(xAxis.X, yAxis.X, zAxis.X, xAxis.Y, yAxis.Y,
+            zAxis.Y, xAxis.Z, yAxis.Z, zAxis.Z, result);
+  }
+  
+  
+  static Quaternion fromRotationMatrix(double m11, double m12, double m13,
+                                              double m21, double m22, double m23,
+                                              double m31, double m32, double m33, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+    var r = m11 + m22 + m33;
+    
+    if (r >= 0) {
+      var s = Math.sqrt(r + 1);
+      result.W = 0.5 * s;
+      s = 0.5 / s;
+      result.X = (m32 - m23) * s;
+      result.Y = (m13 - m31) * s;
+      result.Z = (m21 - m12) * s;
+    } else if ((m11 > m22) && (m11 > m33)) {
+      var s = Math.sqrt(1.0 + m11 - m22 - m33);
+      result.X = s * 0.5;
+      s = 0.5 / s;
+      result.Y = (m21 + m12) * s;
+      result.Z = (m13 + m31) * s;
+      result.W = (m32 - m23) * s;
+    } else if (m22 > m33) {
+      var s = Math.sqrt(1.0 + m22 - m11 - m33);
+      result.Y = s * 0.5;
+      s = 0.5 / s;
+      result.X = (m21 + m12) * s;
+      result.Z = (m32 + m23) * s;
+      result.W = (m13 - m31) * s;
+    } else {
+      var s = Math.sqrt(1.0 + m33 - m11 - m22);
+      result.Z = s * 0.5;
+      s = 0.5 / s;
+      result.X = (m13 + m31) * s;
+      result.Y = (m32 + m23) * s;
+      result.W = (m21 - m12) * s;
+    }
+    
+    return result;
+  }
+
+  
+  
+  static Quaternion DirectionToQuaternion(Vector3 vecDir, [Quaternion result]) {
+   if(result == null) result = new Quaternion.zero();
+      Vector3 vUp = new Vector3(0.0, 0.0, 1.0);
+      Vector3 vRight = Vector3.Cross(vUp, vecDir);
+      vUp = Vector3.Cross(vecDir, vRight, vUp);
+
+      result.W = Math.sqrt(1.0 + vRight.X + vUp.Y + vecDir.Z) / 2.0;
+      
+      double scale = result.W * 4.0;
+      
+      result.X = ((vecDir.Y - vUp.Z) / scale);
+      result.Y = ((vRight.Z - vecDir.X) / scale);
+      result.Z = ((vUp.X - vRight.Y) / scale);
+      vUp.recycle();
+      vRight.recycle();
+      
+
+      return result.normalize();
+  }
+  Quaternion dirToVec(Vector3 vecDir) => DirectionToQuaternion(vecDir,this);
+  
+  
+  
+  Vector3 up([Vector3 result]) {
+    if (result == null) result = new Vector3.zero();
+  
+    var dotself = dest[0] * dest[0] + dest[1] * dest[1] + dest[2] * dest[2] + dest[3] * dest[3];
+    if (dotself != 1.0)
+      dotself = (1.0 / Math.sqrt(dotself));
+    
+    var xx = dest[0] * dest[0] * dotself;
+    var xy = dest[0] * dest[1] * dotself;
+    var xz = dest[0] * dest[2] * dotself;
+    var xw = dest[0] * dest[3] * dotself;
+    var yy = dest[1] * dest[1] * dotself;
+    var yz = dest[1] * dest[2] * dotself;
+    var yw = dest[1] * dest[3] * dotself;
+    var zz = dest[2] * dest[2] * dotself;
+    var zw = dest[2] * dest[3] * dotself;
+    result.dest[0]  =     2 * ( xy - zw );
+    result.dest[1]  = 1 - 2 * ( xx + zz );
+    result.dest[2]  =     2 * ( yz + xw );
+    return result;
+  }
+  Vector3 left([Vector3 result]) {
+    if (result == null) result = new Vector3.zero();
+  
+    var dotself = dest[0] * dest[0] + dest[1] * dest[1] + dest[2] * dest[2] + dest[3] * dest[3];
+    if (dotself != 1.0)
+      dotself = (1.0 / Math.sqrt(dotself));
+    
+    var xx = dest[0] * dest[0] * dotself;
+    var xy = dest[0] * dest[1] * dotself;
+    var xz = dest[0] * dest[2] * dotself;
+    var xw = dest[0] * dest[3] * dotself;
+    var yy = dest[1] * dest[1] * dotself;
+    var yz = dest[1] * dest[2] * dotself;
+    var yw = dest[1] * dest[3] * dotself;
+    var zz = dest[2] * dest[2] * dotself;
+    var zw = dest[2] * dest[3] * dotself;
+
+    result.dest[0]  = 1 - 2 * ( yy + zz );
+    result.dest[1]  =     2 * ( xy + zw );
+    result.dest[2]  =     2 * ( xz - yw );
+    return result;
+  }
+  Vector3 forward([Vector3 result]) {
+    if (result == null) result = new Vector3.zero();
+  
+    var dotself = dest[0] * dest[0] + dest[1] * dest[1] + dest[2] * dest[2] + dest[3] * dest[3];
+    if (dotself != 1.0)
+      dotself = (1.0 / Math.sqrt(dotself));
+    
+    var xx = dest[0] * dest[0] * dotself;
+    var xy = dest[0] * dest[1] * dotself;
+    var xz = dest[0] * dest[2] * dotself;
+    var xw = dest[0] * dest[3] * dotself;
+    var yy = dest[1] * dest[1] * dotself;
+    var yz = dest[1] * dest[2] * dotself;
+    var yw = dest[1] * dest[3] * dotself;
+    var zz = dest[2] * dest[2] * dotself;
+    var zw = dest[2] * dest[3] * dotself;
+    result.dest[0]  =     2 * ( xz + yw );
+    result.dest[1]  =     2 * ( yz - xw );
+    result.dest[2]  = 1 - 2 * ( xx + yy );
+    return result;
+  }
+  
+  
+  
+  
+  Quaternion RotateFromAxisAnge(double x, double y, double z, double angle, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+    double res = sin( a / 2.0 );
+
+    x *= res;
+    y *= res;
+    z *= res;
+
+    double w = cos( a / 2.0 );
+
+    result.X = x;
+    result.Y = y;
+    result.Z = z;
+    result.W = w;
+    return result.normalize();
+  }
+  Quaternion rotateFromAxisAngle(double x, double y, double z, double angle) => RotateFromAxisAnge(x,y,z,angle,this);
+  
+  
+  Quaternion RotateX( Quaternion quat, double angle, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+    result.X = quat.X + Math.cos(angle/2);
+    result.Y = quat.Y + Math.sin(angle/2);
+    result.Z = quat.Z;
+    result.W = quat.W;
+    return result;
+    
+  }
+  Quaternion rotX(double angle) => RotateX(this,angle,this);
+  
+  Quaternion RotateY( Quaternion quat, double angle, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+    result.X = quat.X + Math.cos(angle/2);
+    result.Y = quat.Y;
+    result.Z = quat.Z + Math.sin(angle/2);
+    result.W = quat.W;
+    return result;
+    
+  }
+  Quaternion rotY(double angle) => RotateY(this,angle,this);
+  
+  Quaternion RotateZ( Quaternion quat, double angle, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+    result.X = quat.X + Math.cos(angle/2);
+    result.Y = quat.Y;
+    result.Z = quat.Z;
+    result.W = quat.W = Math.sin(angle/2);
+    return result;
+    
+  }
+  Quaternion rotZ(double angle) => RotateZ(this,angle,this);
+  
   
   /**
    * Calculates the dot product of two quaternions
@@ -116,7 +381,7 @@ class Quaternion {
    *
    * @return {number} Dot product of quat and quat2
    */
-  static double Dot( Quaternion quat, quat2){
+  static double Dot( Quaternion quat, Quaternion quat2){
       return quat.dest[0]*quat2.dest[0] + quat.dest[1]*quat2.dest[1] + quat.dest[2]*quat2.dest[2] + quat.dest[3]*quat2.dest[3];
   }
   
@@ -175,6 +440,7 @@ class Quaternion {
       return result;
   }
   
+  
   /**
    * Calculates the length of a quat4
    *
@@ -198,7 +464,7 @@ class Quaternion {
    * @returns {quat4} dest if specified, quat otherwise
    */
   static Quaternion Normalize( Quaternion quat, [Quaternion result]) {
-      if(result == null) { result = new Quaternion.zero(); }
+      if(result == null) result = new Quaternion.zero();
   
       var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2], w = quat.dest[3],
           len = Math.sqrt(x * x + y * y + z * z + w * w);
@@ -217,6 +483,35 @@ class Quaternion {
   
       return result;
   }
+  Quaternion normalize() => Normalize(this,this);
+
+  
+  static Quaternion EulerToQuaterion(double pitch, double yaw, double roll, [Quaternion result]) {
+  //http://content.gpwiki.org/index.php/OpenGL:Tutorials:Using_Quaternions_to_represent_rotation
+    if(result == null) result = new Quaternion.zero();
+    double p = pitch * PIOVER180 / 2.0;
+    double y = yaw * PIOVER180 / 2.0;
+    double r = roll * PIOVER180 / 2.0;
+   
+    double sinp = Math.sin(p);
+    double siny = Math.sin(y);
+    double sinr = Math.sin(r);
+    double cosp = Math.cos(p);
+    double cosy = Math.cos(y);
+    double cosr = Math.cos(r);
+   
+    result.X = sinr * cosp * cosy - cosr * sinp * siny;
+    result.Y = cosr * sinp * cosy + sinr * cosp * siny;
+    result.Z = cosr * cosp * siny - sinr * sinp * cosy;
+    result.W = cosr * cosp * cosy + sinr * sinp * siny;
+    result.normalize(); 
+    return result;
+  }
+  Quaternion eulerToQuat(double pitch, double yaw, double roll) => EulerToQuaterion(pitch,yaw,roll,this);
+
+  
+  
+  
   
   /**
    * Performs a quaternion multiplication
@@ -228,17 +523,17 @@ class Quaternion {
    * @returns {quat4} dest if specified, quat otherwise
    */
   static Quaternion Multiply( Quaternion quat, Quaternion quat2, [Quaternion result]) {
-      if(result == null) { result = new Quaternion.zero(); }
-  
-      var qax = quat.dest[0], qay = quat.dest[1], qaz = quat.dest[2], qaw = quat.dest[3],
-          qbx = quat2.dest[0], qby = quat2.dest[1], qbz = quat2.dest[2], qbw = quat2.dest[3];
-  
-      result.dest[0] = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
-      result.dest[1] = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
-      result.dest[2] = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
-      result.dest[3] = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
-  
-      return result;
+    if(result == null) result = new Quaternion.zero();
+
+    var qax = quat.dest[0], qay = quat.dest[1], qaz = quat.dest[2], qaw = quat.dest[3],
+        qbx = quat2.dest[0], qby = quat2.dest[1], qbz = quat2.dest[2], qbw = quat2.dest[3];
+
+    result.dest[0] = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+    result.dest[1] = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+    result.dest[2] = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+    result.dest[3] = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+    return result;
   }
   
 
@@ -252,36 +547,36 @@ class Quaternion {
    * @returns {mat3} dest if specified, a new mat3 otherwise
    */
   static Matrix3 ToMat3( Quaternion quat, [Matrix3 result]) {
-      if(result == null) { result = new Matrix3.zero(); }
-  
-      var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2], w = quat.dest[3],
-          x2 = x + x,
-          y2 = y + y,
-          z2 = z + z,
-  
-          xx = x * x2,
-          xy = x * y2,
-          xz = x * z2,
-          yy = y * y2,
-          yz = y * z2,
-          zz = z * z2,
-          wx = w * x2,
-          wy = w * y2,
-          wz = w * z2;
-  
-      result.dest[0] = 1 - (yy + zz);
-      result.dest[1] = xy + wz;
-      result.dest[2] = xz - wy;
-  
-      result.dest[3] = xy - wz;
-      result.dest[4] = 1 - (xx + zz);
-      result.dest[5] = yz + wx;
-  
-      result.dest[6] = xz + wy;
-      result.dest[7] = yz - wx;
-      result.dest[8] = 1 - (xx + yy);
-  
-      return result;
+    if(result == null) { result = new Matrix3.zero(); }
+
+    var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2], w = quat.dest[3],
+        x2 = x + x,
+        y2 = y + y,
+        z2 = z + z,
+
+        xx = x * x2,
+        xy = x * y2,
+        xz = x * z2,
+        yy = y * y2,
+        yz = y * z2,
+        zz = z * z2,
+        wx = w * x2,
+        wy = w * y2,
+        wz = w * z2;
+
+    result.dest[0] = 1 - (yy + zz);
+    result.dest[1] = xy + wz;
+    result.dest[2] = xz - wy;
+
+    result.dest[3] = xy - wz;
+    result.dest[4] = 1 - (xx + zz);
+    result.dest[5] = yz + wx;
+
+    result.dest[6] = xz + wy;
+    result.dest[7] = yz - wx;
+    result.dest[8] = 1 - (xx + yy);
+
+    return result;
   }
   
   /**
@@ -293,45 +588,83 @@ class Quaternion {
    * @returns {mat4} dest if specified, a new mat4 otherwise
    */
   static Matrix ToMat4( Quaternion quat, [Matrix result]) {
-      if(result == null) { result = new Matrix.zero(); }
-  
-      var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2], w = quat.dest[3],
-          x2 = x + x,
-          y2 = y + y,
-          z2 = z + z,
-  
-          xx = x * x2,
-          xy = x * y2,
-          xz = x * z2,
-          yy = y * y2,
-          yz = y * z2,
-          zz = z * z2,
-          wx = w * x2,
-          wy = w * y2,
-          wz = w * z2;
-  
-      result.dest[0] = 1 - (yy + zz);
-      result.dest[1] = xy + wz;
-      result.dest[2] = xz - wy;
-      result.dest[3] = 0.0;
-  
-      result.dest[4] = xy - wz;
-      result.dest[5] = 1 - (xx + zz);
-      result.dest[6] = yz + wx;
-      result.dest[7] = 0.0;
-  
-      result.dest[8] = xz + wy;
-      result.dest[9] = yz - wx;
-      result.dest[10] = 1 - (xx + yy);
-      result.dest[11] = 0.0;
-  
-      result.dest[12] = 0.0;
-      result.dest[13] = 0.0;
-      result.dest[14] = 0.0;
-      result.dest[15] = 1.0;
-  
-      return result;
+    if(result == null) { result = new Matrix.zero(); }
+
+    var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2], w = quat.dest[3],
+        x2 = x + x,
+        y2 = y + y,
+        z2 = z + z,
+
+        xx = x * x2,
+        xy = x * y2,
+        xz = x * z2,
+        yy = y * y2,
+        yz = y * z2,
+        zz = z * z2,
+        wx = w * x2,
+        wy = w * y2,
+        wz = w * z2;
+
+    result.dest[0] = 1 - (yy + zz);
+    result.dest[1] = xy + wz;
+    result.dest[2] = xz - wy;
+    result.dest[3] = 0.0;
+
+    result.dest[4] = xy - wz;
+    result.dest[5] = 1 - (xx + zz);
+    result.dest[6] = yz + wx;
+    result.dest[7] = 0.0;
+
+    result.dest[8] = xz + wy;
+    result.dest[9] = yz - wx;
+    result.dest[10] = 1 - (xx + yy);
+    result.dest[11] = 0.0;
+
+    result.dest[12] = 0.0;
+    result.dest[13] = 0.0;
+    result.dest[14] = 0.0;
+    result.dest[15] = 1.0;
+
+    return result;
   }
+  
+  
+  /**
+   * <code>mult</code> multiplies a quaternion about a matrix. The
+   * resulting vector is returned.
+   *
+   * @param vec
+   *            vec to multiply against.
+   * @param store
+   *            a quaternion to store the result in.  created if null is passed.
+   * @return store = this * vec
+   */
+  static Quaternion MultiplyMat(Quaternion quat, Matrix mat, [Quaternion result]) {
+    if (result == null) result = new Quaternion.zero();
+  
+    double x = mat.m11 * quat.X + mat.m21 * quat.Y + mat.m31 * quat.Z + mat.m41 * quat.W;
+    double y = mat.m12 * quat.X + mat.m22 * quat.Y + mat.m32 * quat.Z + mat.m42 * quat.W;
+    double z = mat.m13 * quat.X + mat.m23 * quat.Y + mat.m33 * quat.Z + mat.m43 * quat.W;
+    double w = mat.m14 * quat.X + mat.m24 * quat.Y + mat.m34 * quat.Z + mat.m44 * quat.W;
+    result.X = x;
+    result.Y = y;
+    result.Z = z;
+    result.W = w;
+  
+    return result;
+  }
+  Quaternion multiplyMat(Matrix mat) => MultiplyMat(this,mat,this);
+  
+  Quaternion MultiplyValue(Quaternion quat, num value, [Quaternion result]) {
+    if (result == null) result = new Quaternion.zero();
+    quat.X *= value;
+    quat.Y *= value;
+    quat.Z *= value;
+    quat.W *= value;
+    return quat;
+  }
+  Quaternion multiplyVal(num value) => MultiplyValue(this,value,this);
+  
   
   /**
    * Performs a spherical linear interpolation between two quat4
@@ -393,7 +726,19 @@ class Quaternion {
    *
    * @returns {string} String representation of quat
    */
-  String toString() => '[' + dest[0].toString() + ', ' + dest[1].toString() + ', ' + dest[2].toString() + ', ' + dest[3].toString() + ']';
+  String toString() => "[$X, $Y, $Z, $W]";
   
-  int hashCode() => X.hashCode() + Y.hashCode() + Z.hashCode() + W.hashCode();
+  bool operator==(Object object) {
+    if (object is! Quaternion) return false;
+    return X == object.X && Y == object.Y && Z == object.Z && W == object.W;
+  }
+  
+  int hashCode() {
+    var erg  = 37;
+        erg += 37 * X.hashCode();
+        erg += 37 * Y.hashCode() * erg;
+        erg += 37 * Z.hashCode() * erg;
+        erg += 37 * W.hashCode() * erg;
+    return erg;
+  }
 }
