@@ -1,6 +1,5 @@
 class Matrix3 {
 
-  //Float32Array dest;
   Float32Array dest;
   
   

@@ -1,9 +1,9 @@
 class Vector4 {
-  Float32List dest;
+  Float32Array dest;
   
   
   Vector4._internal() {
-    dest = new Float32List(4);
+    dest = new Float32Array(4);
   }  
   
   static List<Vector4> _recycled;

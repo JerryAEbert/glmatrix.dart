@@ -400,32 +400,45 @@ class Matrix {
       if(result == null) { result = new Matrix.zero(); }
   
       // Cache the matrix values (makes for huge speed increases!)
-      var a00 = mat.dest[0], a01 = mat.dest[1], a02 = mat.dest[2], a03 = mat.dest[3],
-          a10 = mat.dest[4], a11 = mat.dest[5], a12 = mat.dest[6], a13 = mat.dest[7],
-          a20 = mat.dest[8], a21 = mat.dest[9], a22 = mat.dest[10], a23 = mat.dest[11],
-          a30 = mat.dest[12], a31 = mat.dest[13], a32 = mat.dest[14], a33 = mat.dest[15],
-  
-          b00 = mat2.dest[0], b01 = mat2.dest[1], b02 = mat2.dest[2], b03 = mat2.dest[3],
-          b10 = mat2.dest[4], b11 = mat2.dest[5], b12 = mat2.dest[6], b13 = mat2.dest[7],
-          b20 = mat2.dest[8], b21 = mat2.dest[9], b22 = mat2.dest[10], b23 = mat2.dest[11],
-          b30 = mat2.dest[12], b31 = mat2.dest[13], b32 = mat2.dest[14], b33 = mat2.dest[15];
-  
-      result.dest[0] = b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30;
-      result.dest[1] = b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31;
-      result.dest[2] = b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32;
-      result.dest[3] = b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33;
-      result.dest[4] = b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30;
-      result.dest[5] = b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31;
-      result.dest[6] = b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32;
-      result.dest[7] = b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33;
-      result.dest[8] = b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30;
-      result.dest[9] = b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31;
-      result.dest[10] = b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32;
-      result.dest[11] = b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33;
-      result.dest[12] = b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30;
-      result.dest[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
-      result.dest[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
-      result.dest[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
+      // Cache the matrix values (makes for huge speed increases!)
+      var a00 = mat.dest[ 0], a01 = mat.dest[ 1], a02 = mat.dest[ 2], a03 = mat.dest[3];
+      var a10 = mat.dest[ 4], a11 = mat.dest[ 5], a12 = mat.dest[ 6], a13 = mat.dest[7];
+      var a20 = mat.dest[ 8], a21 = mat.dest[ 9], a22 = mat.dest[10], a23 = mat.dest[11];
+      var a30 = mat.dest[12], a31 = mat.dest[13], a32 = mat.dest[14], a33 = mat.dest[15];
+
+      // Cache only the current line of the second matrix
+      var b0  = mat2.dest[0], b1 = mat2.dest[1], b2 = mat2.dest[2], b3 = mat2.dest[3];  
+      result.dest[0] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+      result.dest[1] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+      result.dest[2] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+      result.dest[3] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+      b0 = mat2.dest[4];
+      b1 = mat2.dest[5];
+      b2 = mat2.dest[6];
+      b3 = mat2.dest[7];
+      result.dest[4] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+      result.dest[5] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+      result.dest[6] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+      result.dest[7] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+      b0 = mat2.dest[8];
+      b1 = mat2.dest[9];
+      b2 = mat2.dest[10];
+      b3 = mat2.dest[11];
+      result.dest[8] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+      result.dest[9] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+      result.dest[10] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+      result.dest[11] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+      b0 = mat2.dest[12];
+      b1 = mat2.dest[13];
+      b2 = mat2.dest[14];
+      b3 = mat2.dest[15];
+      result.dest[12] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+      result.dest[13] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+      result.dest[14] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+      result.dest[15] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
   
       return result;
   }
@@ -443,7 +456,7 @@ class Matrix {
    * @returns {vec4} dest if specified, vec otherwise
    */
   static Vector4 MultiplyVec4(Matrix mat, Vector4 vec, [Vector4 result]) {
-      if(result == null) { result = vec; }
+      if(result == null) { result = new Vector4.zero(); }
   
       var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2], w = vec.dest[3];
   
@@ -935,6 +948,45 @@ class Matrix {
   
   
   
+  
+  static Matrix FromTranslationRotation(Quaternion rotation, Vector3 position,[Matrix result, Vector3 forward, Vector3 up, Vector3 right]) {
+    if(result == null) {
+      result = new Matrix.zero(); 
+    }
+    var twoXSquared = 2 * rotation.X * rotation.X;
+    var twoYSquared = 2 * rotation.Y * rotation.Y;
+    var twoZSquared = 2 * rotation.Z * rotation.Z;
+    var twoXY = 2 * rotation.X * rotation.Y;
+    var twoWZ = 2 * rotation.W * rotation.Z;
+    var twoXZ = 2 * rotation.X * rotation.Z;
+    var twoWY = 2 * rotation.W * rotation.Y;
+    var twoYZ = 2 * rotation.Y * rotation.Z;
+    var twoWX = 2 * rotation.W * rotation.X;
+
+    // update view matrix orientation
+    result.m11 = 1 - twoYSquared - twoZSquared;
+    result.m12 = twoXY + twoWZ;
+    result.m13 = twoXZ - twoWY;
+    result.m21 = twoXY - twoWZ;
+    result.m22 = 1 - twoXSquared - twoZSquared;
+    result.m23 = twoYZ + twoWX;
+    result.m31 = twoXZ + twoWY;
+    result.m32 = twoYZ - twoWX;
+    result.m33 = 1 - twoXSquared - twoYSquared;
+
+    // update view translation
+    
+    forward.setXYZ(result.m11, result.m21, result.m31); //tauschen _>
+    
+    up.setXYZ(result.m12, result.m22, result.m32);
+    
+    right.setXYZ(result.m13, result.m23, result.m33); //tauschen _>
+    
+    result.m41 = -Vector3.Dot(forward, position);
+    result.m42 = -Vector3.Dot(up, position);
+    result.m43 = -Vector3.Dot(right, position);
+    return result;
+  }
   
 
   

@@ -1,5 +1,6 @@
 class Quaternion implements Hashable {
   static final PIOVER180 = Math.PI/180;
+  static final PI180 = Math.PI*180;
 
   Float32Array dest;
 
@@ -32,6 +33,7 @@ class Quaternion implements Hashable {
   factory Quaternion.zero() {
     return _createQuaternion(); 
   }
+  
   factory Quaternion.fromList(List<double> list) {
     Quaternion quat = _createQuaternion();
     quat.X = list[0] == null ? 0 : list[0];
@@ -40,27 +42,8 @@ class Quaternion implements Hashable {
     quat.W = list[3] == null ? 0 : list[3];
     return quat;
   }
-  factory Quaternion.fromEuler(double pitch, double yaw, double roll) {
-  // from: http://content.gpwiki.org/index.php/OpenGL:Tutorials:Using_Quaternions_to_represent_rotation
-    Quaternion result = _createQuaternion();
-    double p = pitch * PIOVER180 / 2.0;
-    double y = yaw * PIOVER180 / 2.0;
-    double r = roll * PIOVER180 / 2.0;
-   
-    double sinp = Math.sin(p);
-    double siny = Math.sin(y);
-    double sinr = Math.sin(r);
-    double cosp = Math.cos(p);
-    double cosy = Math.cos(y);
-    double cosr = Math.cos(r);
-   
-    result.X = sinr * cosp * cosy - cosr * sinp * siny;
-    result.Y = cosr * sinp * cosy + sinr * cosp * siny;
-    result.Z = cosr * cosp * siny - sinr * sinp * cosy;
-    result.W = cosr * cosp * cosy + sinr * sinp * siny;
-    result.normalize(); 
-    return result;
-  }
+  
+  factory Quaternion.fromEuler(double pitch, double yaw, double roll) => _createQuaternion().eulerToQuat(pitch,yaw,roll);
   factory Quaternion.fromDirection(Vector3 vecDir) {
     Quaternion result = _createQuaternion();
     Vector3 vUp = new Vector3(0.0, 0.0, 1.0);
@@ -100,7 +83,7 @@ class Quaternion implements Hashable {
   void set W(double val) { dest[3] = val.toDouble();}
   
   /**
-   * Copies the values of one quat4 to another
+   * Clones the values of [quat] to [result] or creates a new Quaterion if [result] is null
    *
    * @param {quat4} quat quat4 containing values to copy
    * @param {quat4} dest quat4 receiving copied values
@@ -120,14 +103,10 @@ class Quaternion implements Hashable {
   Quaternion clone([Quaternion result]) => Quaternion.Clone(this,result);
   
   /**
-   * Calculates the W component of a quat4 from the X, Y, and Z components.
+   * Calculates the W component of [quat] from the X, Y, and Z components.
+   * Writes the calculation into [result] or creates a new Quaternion.
    * Assumes that quaternion is 1 unit in length. 
-   * Any existing W component will be ignored. 
-   *
-   * @param {quat4} quat quat4 to calculate W component of
-   * @param {quat4} [dest] quat4 receiving calculated values. If not specified result is written to quat
-   *
-   * @returns {quat4} dest if specified, quat otherwise
+   * Any existing W component will be ignored.
    */
   static Quaternion CalculateW( Quaternion quat, [Quaternion result]) {
       var x = quat.dest[0], y = quat.dest[1], z = quat.dest[2];
@@ -145,6 +124,9 @@ class Quaternion implements Hashable {
   }
   Quaternion calcW() =>CalculateW(this,this);
   
+  /**
+   * Identifies this Quaternion
+   */
   Quaternion identify() {
     X = 0.0;
     Y = 0.0;
@@ -152,17 +134,10 @@ class Quaternion implements Hashable {
     W = 1.0;
     return this;
   }
+
   /**
-   * <code>lookAt</code> is a convienence method for auto-setting the
-   * quaternion based on a direction and an up vector. It computes
-   * the rotation to transform the z-axis to point into 'direction'
-   * and the y-axis to 'up'.
-   *
-   * @param direction
-   *            where to look at in terms of local coordinates
-   * @param up
-   *            a vector indicating the local up direction.
-   *            (typically {0, 1, 0} in jME.)
+   * Rotates [result] to look at [direction] with the [up].
+   * Creates a new Quaternion if result is null.
    */
   static Quaternion LookAt(Vector3 direction, Vector3 up, [Quaternion result]) {
     Vector3 z = Vector3.Normalize(direction);
@@ -178,13 +153,19 @@ class Quaternion implements Hashable {
   Quaternion lookAt(Vector3 direction, Vector3 upDir) => LookAt(direction,upDir,this);
   
   
-  
+  /**
+   * Rotates [result] to mach the rotation of the three axis [xAxis] [yAxis] [zAxis]
+   * Creates a new Quaternion if result is null.
+   */  
   static Quaternion FromAxes(Vector3 xAxis, Vector3 yAxis, Vector3 zAxis, [Quaternion result]) {
     return fromRotationMatrix(xAxis.X, yAxis.X, zAxis.X, xAxis.Y, yAxis.Y,
             zAxis.Y, xAxis.Z, yAxis.Z, zAxis.Z, result);
   }
   
-  
+  /**
+   * Rotates [result] to mach RotationMatrix
+   * Creates a new Quaternion if result is null.
+   */  
   static Quaternion fromRotationMatrix(double m11, double m12, double m13,
                                               double m21, double m22, double m23,
                                               double m31, double m32, double m33, [Quaternion result]) {
@@ -225,7 +206,10 @@ class Quaternion implements Hashable {
   }
 
   
-  
+  /**
+   * Rotates [result] to mach RotationMatrix
+   * Creates a new Quaternion if result is null.
+   */ 
   static Quaternion DirectionToQuaternion(Vector3 vecDir, [Quaternion result]) {
    if(result == null) result = new Quaternion.zero();
       Vector3 vUp = new Vector3(0.0, 0.0, 1.0);
@@ -245,10 +229,13 @@ class Quaternion implements Hashable {
 
       return result.normalize();
   }
-  Quaternion dirToVec(Vector3 vecDir) => DirectionToQuaternion(vecDir,this);
+  Quaternion dirToQuat(Vector3 vecDir) => DirectionToQuaternion(vecDir,this);
   
   
-  
+  /**
+   * Calculates the up Vector of this quaterion and writes it into [result]
+   * Creates a new Quaternion if result is null.
+   */ 
   Vector3 up([Vector3 result]) {
     if (result == null) result = new Vector3.zero();
   
@@ -270,6 +257,10 @@ class Quaternion implements Hashable {
     result.dest[2]  =     2 * ( yz + xw );
     return result;
   }
+  /**
+   * Calculates the left Vector of this quaterion and writes it into [result]
+   * Creates a new Quaternion if result is null.
+   */ 
   Vector3 left([Vector3 result]) {
     if (result == null) result = new Vector3.zero();
   
@@ -292,6 +283,10 @@ class Quaternion implements Hashable {
     result.dest[2]  =     2 * ( xz - yw );
     return result;
   }
+  /**
+   * Calculates the forward Vector of this quaterion and writes it into [result]
+   * Creates a new Quaternion if result is null.
+   */ 
   Vector3 forward([Vector3 result]) {
     if (result == null) result = new Vector3.zero();
   
@@ -319,13 +314,13 @@ class Quaternion implements Hashable {
   
   Quaternion RotateFromAxisAnge(double x, double y, double z, double angle, [Quaternion result]) {
     if(result == null) result = new Quaternion.zero();
-    double res = sin( a / 2.0 );
+    double res = Math.sin( angle / 2.0 );
 
     x *= res;
     y *= res;
     z *= res;
 
-    double w = cos( a / 2.0 );
+    double w = Math.cos( angle / 2.0 );
 
     result.X = x;
     result.Y = y;
@@ -379,8 +374,9 @@ class Quaternion implements Hashable {
    * @return {number} Dot product of quat and quat2
    */
   static double Dot( Quaternion quat, Quaternion quat2){
-      return quat.dest[0]*quat2.dest[0] + quat.dest[1]*quat2.dest[1] + quat.dest[2]*quat2.dest[2] + quat.dest[3]*quat2.dest[3];
+    return quat.dest[0]*quat2.dest[0] + quat.dest[1]*quat2.dest[1] + quat.dest[2]*quat2.dest[2] + quat.dest[3]*quat2.dest[3];
   }
+  double dot(Quaternion quat) => Dot(this,quat);
   
   /**
    * Calculates the inverse of a quat4
@@ -510,29 +506,39 @@ class Quaternion implements Hashable {
   
   
   
-  /**
-   * Performs a quaternion multiplication
-   *
-   * @param {quat4} quat First operand
-   * @param {quat4} quat2 Second operand
-   * @param {quat4} [dest] quat4 receiving operation result. If not specified result is written to quat
-   *
-   * @returns {quat4} dest if specified, quat otherwise
-   */
-  static Quaternion Multiply( Quaternion quat, Quaternion quat2, [Quaternion result]) {
-    if(result == null) result = new Quaternion.zero();
 
-    var qax = quat.dest[0], qay = quat.dest[1], qaz = quat.dest[2], qaw = quat.dest[3],
-        qbx = quat2.dest[0], qby = quat2.dest[1], qbz = quat2.dest[2], qbw = quat2.dest[3];
-
-    result.dest[0] = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
-    result.dest[1] = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
-    result.dest[2] = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
-    result.dest[3] = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
-
+  
+  
+  static Vector3 QuatToEuler(Quaternion quat, [Vector3 result]) {
+    if(result == null) result = new Vector3.zero();
+    double sqw;
+    double sqx;
+    double sqy;
+    double sqz;
+    
+    double rotxrad;
+    double rotyrad;
+    double rotzrad;
+    
+    sqw = quat.W * quat.W;
+    sqx = quat.X * quat.X;
+    sqy = quat.Y * quat.Y;
+    sqz = quat.Z * quat.Z;
+    
+    rotxrad = Math.atan2(2.0 * ( quat.Y * quat.Z + quat.X * quat.W ) , ( -sqx - sqy + sqz + sqw ));
+    rotyrad = Math.asin(-2.0 * ( quat.X * quat.Z - quat.Y * quat.W ));
+    rotzrad = Math.atan2(2.0 * ( quat.X * quat.Y + quat.Z * quat.W ) , (  sqx - sqy - sqz + sqw ));
+    
+    // rad to degree!
+    result.X = rotxrad * PI180;
+    result.Y = rotyrad * PI180;
+    result.Z = rotzrad * PI180;
+    
     return result;
   }
+  Vector3 toEuler([Vector3 result]) => QuatToEuler(this,result);
   
+    
 
   
   /**
@@ -625,6 +631,60 @@ class Quaternion implements Hashable {
     return result;
   }
   
+  
+  static Quaternion Add(Quaternion quad, Quaternion quad2, Quaternion result) {
+    if (result == null) result = new Quaternion.zero();
+    result.dest[0] = quad.dest[0] + quad2.dest[0];
+    result.dest[1] = quad.dest[1] + quad2.dest[1];
+    result.dest[2] = quad.dest[2] + quad2.dest[2];
+    result.dest[3] = quad.dest[3] + quad2.dest[3];
+    return result;
+  }
+  Quaternion add(Quaternion quad) => Add(this, quad, this);
+  
+  /**
+   * Performs a quaternion multiplication
+   *
+   * @param {quat4} quat First operand
+   * @param {quat4} quat2 Second operand
+   * @param {quat4} [dest] quat4 receiving operation result. If not specified result is written to quat
+   *
+   * @returns {quat4} dest if specified, quat otherwise
+   */
+  static Quaternion Multiply( Quaternion quat, Quaternion quat2, [Quaternion result]) {
+    if(result == null) result = new Quaternion.zero();
+
+    var qax = quat.dest[0], qay = quat.dest[1], qaz = quat.dest[2], qaw = quat.dest[3],
+        qbx = quat2.dest[0], qby = quat2.dest[1], qbz = quat2.dest[2], qbw = quat2.dest[3];
+
+    result.dest[0] = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+    result.dest[1] = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+    result.dest[2] = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+    result.dest[3] = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+    return result;
+  }
+  Quaternion multiply(Quaternion quat) => Multiply(this,quat,this);
+  
+  
+  static Vector3 MultiplyVector3( Quaternion quat, Vector3 vec, [Vector3 result]) {
+    if(result == null) result = new Vector3.zero();
+    var x = vec.dest[0], y = vec.dest[1], z = vec.dest[2],
+        qx = quat.dest[0], qy = quat.dest[1], qz = quat.dest[2], qw = quat.dest[3],
+
+        // calculate quat * vec
+        ix = qw * x + qy * z - qz * y,
+        iy = qw * y + qz * x - qx * z,
+        iz = qw * z + qx * y - qy * x,
+        iw = -qx * x - qy * y - qz * z;
+
+    // calculate result * inverse quat
+    result.dest[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+    result.dest[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+    result.dest[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+    return result;
+  }
+  Vector3 multiplyVec3(Vector3 vec, [Vector3 result]) => MultiplyVector3(this,vec,result);
   
   /**
    * <code>mult</code> multiplies a quaternion about a matrix. The

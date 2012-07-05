@@ -1,5 +1,4 @@
 class Vector3 implements Hashable {
-  //Float32Array dest;
   Float32Array dest;
   
   
@@ -66,7 +65,7 @@ class Vector3 implements Hashable {
     return vec;
   }
   
-  factory Vector3(double x, double y, double z) {
+  factory Vector3([double x = 0.0, double y = 0.0, double z = 0.0]) {
     Vector3 vec = _createVector();
     vec.dest[0] = x.toDouble();
     vec.dest[1] = y.toDouble();
@@ -114,17 +113,12 @@ class Vector3 implements Hashable {
    * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Add(Vector3 vec, Vector3 other, [Vector3 result]) {
-      if (result == null || vec === result) {
-          vec.dest[0] += other.dest[0];
-          vec.dest[1] += other.dest[1];
-          vec.dest[2] += other.dest[2];
-          return vec;
-      }
+    if(result == null) result = new Vector3.zero();
 
-      result.dest[0] = vec.dest[0] + other.dest[0];
-      result.dest[1] = vec.dest[1] + other.dest[1];
-      result.dest[2] = vec.dest[2] + other.dest[2];
-      return result;
+    result.dest[0] = vec.dest[0] + other.dest[0];
+    result.dest[1] = vec.dest[1] + other.dest[1];
+    result.dest[2] = vec.dest[2] + other.dest[2];
+    return result;
   }
   Vector3 add(Vector3 vec) => Vector3.Add(this, vec, this);
   /**
@@ -132,17 +126,12 @@ class Vector3 implements Hashable {
    * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Subtract(Vector3 vec, Vector3 other, [Vector3 result]) {
-      if (result == null || vec === result) {
-          vec.dest[0] -= other.dest[0];
-          vec.dest[1] -= other.dest[1];
-          vec.dest[2] -= other.dest[2];
-          return vec;
-      }
+    if(result == null) result = new Vector3.zero();
 
-      result.dest[0] = vec.dest[0] - other.dest[0];
-      result.dest[1] = vec.dest[1] - other.dest[1];
-      result.dest[2] = vec.dest[2] - other.dest[2];
-      return result;
+    result.dest[0] = vec.dest[0] - other.dest[0];
+    result.dest[1] = vec.dest[1] - other.dest[1];
+    result.dest[2] = vec.dest[2] - other.dest[2];
+    return result;
   }
   Vector3 subtract(Vector3 vec) => Vector3.Subtract(this, vec, this);
 
@@ -164,17 +153,10 @@ class Vector3 implements Hashable {
    */
   static Vector3 Multiply(Vector3 vec, Vector3 other, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
-      if (result == null || vec === result) {
-          vec.dest[0] *= other.dest[0];
-          vec.dest[1] *= other.dest[1];
-          vec.dest[2] *= other.dest[2];
-          return vec;
-      }
-
-      result.dest[0] = vec.dest[0] * other.dest[0];
-      result.dest[1] = vec.dest[1] * other.dest[1];
-      result.dest[2] = vec.dest[2] * other.dest[2];
-      return result;
+    result.dest[0] = vec.dest[0] * other.dest[0];
+    result.dest[1] = vec.dest[1] * other.dest[1];
+    result.dest[2] = vec.dest[2] * other.dest[2];
+    return result;
   }
 /// Performs a vector multiplication between this and [other].
   Vector3 multiply(Vector3 other) => Multiply(this,other,this);
@@ -318,16 +300,17 @@ class Vector3 implements Hashable {
 
   /// Caclulates the length of this
   double get length() => Math.sqrt(Math.pow(X,2) + Math.pow(Y,2) + Math.pow(Z,2) );
- 
+  double get lengthSquare() => Math.pow(X,2) + Math.pow(Y,2) + Math.pow(Z,2);
 
   /**
    * Caclulates the dot product of [vec] and [other]
    * Writes it into [result] or creates a new Vector3 if not specified.
    */
-  static double Dot(Vector3 vec, Vector3 other) {
+  static double Dot(Vector3 vec, [Vector3 other]) {
+    if(other == null) other = vec;
       return vec.dest[0] * other.dest[0] + vec.dest[1] * other.dest[1] + vec.dest[2] * other.dest[2];
   }
-  double dot(Vector3 other) => Dot(this,other);
+  double dot([Vector3 other]) => Dot(this,other);
 
   /**
    * Generates a unit vector pointing from [vec] vector to [other]
@@ -378,15 +361,13 @@ class Vector3 implements Hashable {
    * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static Vector3 Lerp(Vector3 vec, Vector3 other, double lerpVal, [Vector3 result]) {
-      if(result == null) result = new Vector3.zero();
-      
-      
+    if(result == null) result = new Vector3.zero();
 
-      result.dest[0] = vec.dest[0] + lerpVal * (other.dest[0] - vec.dest[0]);
-      result.dest[1] = vec.dest[1] + lerpVal * (other.dest[1] - vec.dest[1]);
-      result.dest[2] = vec.dest[2] + lerpVal * (other.dest[2] - vec.dest[2]);
-
-      return result;
+    result.dest[0] = vec.dest[0] + lerpVal * (other.dest[0] - vec.dest[0]);
+    result.dest[1] = vec.dest[1] + lerpVal * (other.dest[1] - vec.dest[1]);
+    result.dest[2] = vec.dest[2] + lerpVal * (other.dest[2] - vec.dest[2]);
+  
+    return result;
   }
   /// Performs a linear interpolation with [lerpVal] between [this] and [other]
   void lerp(Vector3 other, double lerpVal) {
@@ -399,11 +380,11 @@ class Vector3 implements Hashable {
    * Writes it into [result] or creates a new Vector3 if not specified.
    */
   static double Distance(Vector3 vec, Vector3 other) {
-      var x = other.dest[0] - vec.dest[0],
-          y = other.dest[1] - vec.dest[1],
-          z = other.dest[2] - vec.dest[2];
-          
-      return Math.sqrt(x*x + y*y + z*z);
+    var x = other.dest[0] - vec.dest[0],
+        y = other.dest[1] - vec.dest[1],
+        z = other.dest[2] - vec.dest[2];
+        
+    return Math.sqrt(x*x + y*y + z*z);
   }
   double distance(Vector3 other) => Vector3.Distance(this, other);
   
@@ -429,39 +410,75 @@ class Vector3 implements Hashable {
    *
    * @returns {vec3} dest if specified, vec otherwise
    */
-  static Vector3 Unproject(int posX, int posY, Matrix view, Matrix proj,
+  static Vector3 Unproject(int posX, int posY, double posZ, Matrix view, Matrix proj,
                            int viewportX, int viewportY, int viewportWidth, int viewPortHeight,
                            [Vector3 result]) {
   //static Vector3 Unproject(Vector3 vec, Matrix view, Matrix proj, Vector4 viewport, [Vector3 result]) {
-      if(result == null) result = new Vector3.zero();
-
-      Matrix m = new Matrix.zero();
-      Vector4 v = new Vector4.zero();
-      
-      v.dest[0] = (posX - viewportX) * 2.0 / viewportWidth  - 1.0;
-      v.dest[1] = (posY - viewportY) * 2.0 / viewPortHeight - 1.0;
+    if(result == null) result = new Vector3.zero();
+    
+    Matrix m = new Matrix.zero();
+    Vector4 v = new Vector4.zero();
+    //var x = 
+    //var y = 
+    
+    v.dest[0] = (posX - viewportX) * 2.0 / viewportWidth  - 1.0;
+    v.dest[1] = (posY - viewportY) * 2.0 / viewPortHeight - 1.0;
+    v.dest[2] = 2.0 * posZ - 1.0;
+    v.dest[3] = 1.0;
+    
+    Matrix.Multiply(proj, view, m);
+    if(m.inverse() == null) { return null; }
+    
+    Matrix.MultiplyVec4(m, v, v);
+    if(v.dest[3] === 0.0) { return null; }
+    
+    result.dest[0] = v.dest[0] / v.dest[3];
+    result.dest[1] = v.dest[1] / v.dest[3];
+    result.dest[2] = v.dest[2] / v.dest[3];
+    
+    /*
+    if(unprojectDirection != null) {
+      v.dest[0] = x;
+      v.dest[1] = y;
       v.dest[2] = 0.0;
       v.dest[3] = 1.0;
-      
+      m = new Matrix.zero();
       Matrix.Multiply(proj, view, m);
-      if(m.inverse() == null) { return null; }
-      
       Matrix.MultiplyVec4(m, v);
-      if(v.dest[3] === 0.0) { return null; }
+      unprojectDirection.dest[0] = v.dest[0] / v.dest[3];
+      unprojectDirection.dest[1] = v.dest[1] / v.dest[3];
+      unprojectDirection.dest[2] = v.dest[2] / v.dest[3];
+      //unprojectDirection.subtract(result);
 
-      result.dest[0] = v.dest[0] / v.dest[3];
-      result.dest[1] = v.dest[1] / v.dest[3];
-      result.dest[2] = v.dest[2] / v.dest[3];
-      m.recycle();
-      v.recycle();
       
-      return result;
+    }*/
+    
+    m.recycle();
+    v.recycle();
+    
+    return result;
   }
 
   bool operator==(Object object) {
     if (object is! Vector3) return false;  
     return X == object.X && Y == object.Y && Z == object.Z;
   }
+  
+  static Vector3 Project(Vector3 pos, Matrix view, Matrix proj, int viewportWidth, int viewPortHeight, [Vector3 result]) {
+    if(result == null) result = new Vector3.zero();
+    Vector4 v = new Vector4(pos.X,pos.Y,pos.Z,0.0);
+    Matrix pv = Matrix.Multiply(proj, view);
+    v = Matrix.MultiplyVec4(pv, v, v);
+    result.dest[0] = (v.X + 1) * (viewportWidth / 2);
+    result.dest[1] = (v.Y + 1) * (viewPortHeight / 2);
+    result.dest[2] = v.dest[2];
+    pv.recycle();
+    v.recycle();
+    
+    return result;
+  }
+  
+  
   
   /**
    * Returns a string representation of this vector
@@ -474,5 +491,7 @@ class Vector3 implements Hashable {
         erg += 37 * Z.hashCode() * erg;
     return erg;
   }
+  
+  
   
 }
