@@ -466,7 +466,7 @@ class Vector3 implements Hashable {
   
   static Vector3 Project(Vector3 pos, Matrix view, Matrix proj, int viewportWidth, int viewPortHeight, [Vector3 result]) {
     if(result == null) result = new Vector3.zero();
-    Vector4 v = new Vector4(pos.X,pos.Y,pos.Z,0.0);
+    Vector4 v = new Vector4(pos.X,pos.Y,pos.Z,1.0);
     Matrix pv = Matrix.Multiply(proj, view);
     v = Matrix.MultiplyVec4(pv, v, v);
     result.dest[0] = (v.X + 1) * (viewportWidth / 2);
