@@ -485,10 +485,12 @@ class Vector3 implements Hashable {
    */
   String toString() => "[$X, $Y, $Z]";
   int hashCode() {
+    // fix till hashCode works proper on doubles
+    return "[$X, $Y, $Z]".hashCode();
     var erg  = 37;
         erg  = 37 * X.hashCode();
-        erg += 37 * Y.hashCode() * erg;
-        erg += 37 * Z.hashCode() * erg;
+        erg += 37 * Y.hashCode();
+        erg += 37 * Z.hashCode();
     return erg;
   }
   

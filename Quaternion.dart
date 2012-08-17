@@ -62,11 +62,11 @@ class Quaternion implements Hashable {
     return result.normalize();
   }
   
-  factory Quaternion(double x, double y, double z, [double w]) {
+  factory Quaternion([double x, double y, double z, double w]) {
     Quaternion quat = _createQuaternion();
-    quat.dest[0] = x;
-    quat.dest[1] = y;
-    quat.dest[2] = z;
+    quat.dest[0] = x == null ? 0.0 : x;
+    quat.dest[1] = y == null ? 0.0 : y;
+    quat.dest[2] = z == null ? 0.0 : z;
     quat.dest[2] = w == null ? 1.0 : w;
     return quat;
   }
